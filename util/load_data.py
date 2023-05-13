@@ -53,7 +53,7 @@ class CustomDataset(Dataset):
     """
     Dataset with input as path to metadata.csv file (so we don't have to load the whole Data in memory)
     """
-    def __init__(self, metadata, transform=None, resize = False, apply_CLAHE = False):
+    def __init__(self, metadata, transform=None, resize = False, apply_CLAHE = False, dir = None):
         # store metadata of dataset
         self.metadata = metadata
 
@@ -62,9 +62,17 @@ class CustomDataset(Dataset):
         self.resize = resize
         self.apply_CLAHE = apply_CLAHE
 
+        # store path to working directory
+        if dir is not None:
+            self.dir = dir + "/"
+        else:
+            self.dir = None
+            
     def __getitem__(self, index):
         # fetch image
         img_path = self.metadata.loc[index].path
+        if self.dir is not None:
+            img_path = self.dir + img_path # needed to allow raytune to open images
         img = np.array(Image.open(img_path)) # shape (64, 64)
 
         # resize if needed
@@ -104,6 +112,8 @@ class CustomDataset(Dataset):
 
             # fetch image
             img_path = self.metadata.loc[id].path
+            if self.dir is not None:
+                img_path = self.dir + img_path # needed to allow raytune to open images
             img = np.asarray(Image.open(img_path)).astype(np.float32)/255
             
             pixel_sum += np.sum(img)
