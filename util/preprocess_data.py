@@ -1,5 +1,6 @@
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+import cv2
 
 def get_transform(visualize = False):
     """
@@ -14,7 +15,7 @@ def get_transform(visualize = False):
     A.Compose: An Albumentations composition of transformations.
     """
     # get preprocessing settings from .ini
-    MEANS, STDS = [1., 1., 1.], [1., 1., 1.]
+    MEAN, STD = [60.0644191863925 / 65535.0], [58.84460681054689 / 65535.0]
 
     transform_list = [
             # necessary as we work with uint16 images (https://albumentations.ai/docs/examples/example_16_bit_tiff/)
@@ -25,7 +26,7 @@ def get_transform(visualize = False):
             # color augmentations
             A.UnsharpMask(p = 1), # always sharpen the image
             # normalize & convert data to tensor
-            A.Normalize(mean=MEANS, std=STDS),
+            A.Normalize(mean = MEAN, std = STD),
             ToTensorV2()
     ]
     

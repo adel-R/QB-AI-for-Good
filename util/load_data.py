@@ -45,7 +45,7 @@ def trainval_split(metadata, val_size = 0.2):
     Returns:
     tuple: A tuple containing two DataFrames. The first DataFrame is for training and the second DataFrame is for validation.
     """
-    trn_metadata, val_metadata = train_test_split(metadata, test_size = val_size)
+    trn_metadata, val_metadata = train_test_split(metadata, test_size = val_size, random_state = 42) # fix seed for reproducible train test split
     return trn_metadata.reset_index(), val_metadata.reset_index()
 
 
@@ -53,12 +53,13 @@ class CustomDataset(Dataset):
     """
     Dataset with input as path to metadata.csv file (so we don't have to load the whole Data in memory)
     """
-    def __init__(self, metadata, transform=None, apply_CLAHE = False):
+    def __init__(self, metadata, transform=None, resize = False, apply_CLAHE = False):
         # store metadata of dataset
         self.metadata = metadata
 
         # save transform
         self.transform = transform
+        self.resize = resize
         self.apply_CLAHE = apply_CLAHE
 
     def __getitem__(self, index):
@@ -66,13 +67,14 @@ class CustomDataset(Dataset):
         img_path = self.metadata.loc[index].path
         img = np.array(Image.open(img_path)) # shape (64, 64)
 
+        # resize if needed
+        if self.resize:
+            img = cv2.resize(img, (224,224), interpolation = cv2.INTER_CUBIC)
+
         # apply CLAHE if needed
         if self.apply_CLAHE:
             clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
             img = clahe.apply(img)
-
-        # image should be of shape (1, 64, 64)
-        img = np.expand_dims(img, axis = 0)
 
         # fetch ground truth label
         lbl = self.metadata.loc[index].plume
@@ -94,8 +96,7 @@ class CustomDataset(Dataset):
             iterator = range(0, self.__len__())
         
         # initialise values for computation
-        R_sum, G_sum, B_sum = 0, 0, 0
-        R_sqsum, G_sqsum, B_sqsum = 0, 0, 0
+        pixel_sum, pixel_sqsum = 0, 0
         count = 0
 
         # iterate over data
@@ -105,24 +106,15 @@ class CustomDataset(Dataset):
             img_path = self.metadata.loc[id].path
             img = np.asarray(Image.open(img_path)).astype(np.float32)/255
             
-            R_sum += np.sum(img[:,:,0])
-            G_sum += np.sum(img[:,:,1])
-            B_sum += np.sum(img[:,:,2])
+            pixel_sum += np.sum(img)
+            pixel_sqsum += np.sum(img ** 2)
 
-            R_sqsum += np.sum(img[:,:,0] ** 2)
-            G_sqsum += np.sum(img[:,:,1] ** 2)
-            B_sqsum += np.sum(img[:,:,2] ** 2)
-
-            count += img.shape[0] * img.shape[1] # count how many pixels we have added to each channel within this step
+            count += img.size # count how many pixels we have added to each channel within this step
 
         # compute mean
-        R_mean = R_sum / count
-        G_mean = G_sum / count
-        B_mean = B_sum / count
+        pixel_mean = pixel_sum / count
 
         # compute std = sqrt(E[X^2] - (E[X])^2)
-        R_std = (R_sqsum / count - R_mean ** 2) ** 0.5
-        G_std = (G_sqsum / count - G_mean ** 2) ** 0.5
-        B_std = (B_sqsum / count - B_mean ** 2) ** 0.5
+        pixel_std = (pixel_sqsum / count - pixel_mean ** 2) ** 0.5
 
-        return [R_mean, G_mean, B_mean], [R_std, G_std, B_std]
+        return pixel_mean, pixel_std
