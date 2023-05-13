@@ -17,7 +17,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import torchvision
 ## evaluation
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, roc_auc_score
 ## hyperparam optimization
 from ray import air, tune
 from ray.air import session
@@ -54,9 +54,9 @@ def get_datasets(config):
     trn_metadata, val_metadata = loadData.trainval_split(trnval_metadata, val_size = 0.2)
 
     # get pytorch datasets for modeling
-    trn_dataset = loadData.CustomDataset(trn_metadata, transform = trn_transform, apply_CLAHE = True, dir = config["dir"])
-    val_dataset = loadData.CustomDataset(val_metadata, transform = valtst_transform, apply_CLAHE = True, dir = config["dir"])
-    tst_dataset = loadData.CustomDataset(tst_metadata, transform = valtst_transform, apply_CLAHE = True, dir = config["dir"])
+    trn_dataset = loadData.CustomDataset(trn_metadata, transform = trn_transform, resize = config["resize"], apply_CLAHE = config["apply_CLAHE"], dir = config["dir"])
+    val_dataset = loadData.CustomDataset(val_metadata, transform = valtst_transform, resize = config["resize"], apply_CLAHE = config["apply_CLAHE"], dir = config["dir"])
+    tst_dataset = loadData.CustomDataset(tst_metadata, transform = valtst_transform, resize = config["resize"], apply_CLAHE = config["apply_CLAHE"], dir = config["dir"])
 
     return trn_dataset, val_dataset, tst_dataset
 
@@ -116,9 +116,9 @@ def init_training(config, use_model = None):
     # get data
     trn_dataset, val_dataset, tst_dataset = get_datasets(config)
     trnloader = get_dataloader(trn_dataset, config["batch_size"], shuffle = True)
-    valloader = get_dataloader(val_dataset, config["batch_size"], shuffle = True)
+    valloader = get_dataloader(val_dataset, config["batch_size"], shuffle = False)
     try:
-        tstloader = get_dataloader(tst_dataset, config["batch_size"], shuffle = True)
+        tstloader = get_dataloader(tst_dataset, config["batch_size"], shuffle = False)
     except ValueError: # if no test data available
         tstloader = None
 
@@ -182,11 +182,13 @@ def train_epoch(dataloader, model, optimizer, scheduler, scheduler_step, criteri
         
     # compute stats
     acc = accuracy_score(lbls.detach().numpy(), (preds.detach().numpy() > 0.5))
+    auc = roc_auc_score(lbls.detach().numpy(), preds.detach().numpy())
     loss_mean = np.mean(losses)
     
-    return acc, loss_mean
+    return acc, auc, loss_mean
 
 
+@torch.no_grad()
 def test_epoch(dataloader, model, criterion, device):
     
     model.eval()
@@ -213,9 +215,10 @@ def test_epoch(dataloader, model, criterion, device):
         
     # compute stats
     acc = accuracy_score(lbls.detach().numpy(), (preds.detach().numpy() > 0.5))
+    auc = roc_auc_score(lbls.detach().numpy(), preds.detach().numpy())
     loss_mean = np.mean(losses)
     
-    return acc, loss_mean
+    return acc, auc, loss_mean
 
 
 def train_evaluate_model(config, verbose = True, ray = False, return_obj = True, use_model = None):
@@ -237,17 +240,17 @@ def train_evaluate_model(config, verbose = True, ray = False, return_obj = True,
     (model, optimizer, trnloader, valloader, tstloader, scheduler, scheduler_step, criterion, device) = init_training(config)
 
     # perform training
-    max_val_acc = 0
+    max_val_auc = 0
     
     for epoch in range(max_epochs):
 
         ##TRAINING##
-        trn_acc, trn_loss = train_epoch(trnloader, model, optimizer,
+        trn_acc, trn_auc, trn_loss = train_epoch(trnloader, model, optimizer,
                                         scheduler, scheduler_step,
                                         criterion, device)
 
         ##VALIDATION##
-        val_acc, val_loss = test_epoch(valloader, model, criterion, device)
+        val_acc, val_auc, val_loss = test_epoch(valloader, model, criterion, device)
 
         ##SCHEDULE learning rate if necessary##
         if scheduler_step == "every epoch":
@@ -262,21 +265,22 @@ def train_evaluate_model(config, verbose = True, ray = False, return_obj = True,
         ##REPORT##
         if verbose:
             print(f"Epoch [{epoch + 1}/{max_epochs}] -> Trn Loss: {round(trn_loss, 2)}, Val Loss: {round(val_loss, 2)}, \
-Trn Acc: {round(trn_acc, 3)}, Val Acc: {round(val_acc, 3)}")
+Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(val_auc, 3)}")
             
         if config["save"]:
-            if val_acc >= max_val_acc:
-                max_val_acc = val_acc
+            if val_auc >= max_val_auc:
+                max_val_auc = val_auc
                 path = f"best_{config['model']}.pt"
                 torch.save(model.state_dict(), path)
 
         if ray:
             session.report({"trn_loss": trn_loss, "val_loss": val_loss,
-                            "trn_acc": trn_acc, "val_acc": val_acc})
+                            "trn_acc": trn_acc, "val_acc": val_acc,
+                            "trn_auc": trn_auc, "val_auc": val_auc})
     
-    if tstloader is not None:
-        tst_acc, tst_loss = test_epoch(tstloader, model, criterion, device)
-        print(f"Test Performance -> Loss: {round(tst_loss, 2)}, Acc: {round(tst_acc, 3)}")
+    if len(tstloader) > 0:
+        tst_acc, tst_auc, tst_loss = test_epoch(tstloader, model, criterion, device)
+        print(f"Test Performance -> Loss: {round(tst_loss, 2)}, AUC: {round(tst_auc, 3)}")
 
     if return_obj:
         return model, trn_losses, val_losses, trn_accs, val_accs
