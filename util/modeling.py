@@ -235,6 +235,9 @@ def train_evaluate_model(config, verbose = True, ray = False, return_obj = True,
        
     # set up model
     (model, optimizer, trnloader, valloader, tstloader, scheduler, scheduler_step, criterion, device) = init_training(config)
+
+    # perform training
+    max_val_acc = 0
     
     for epoch in range(max_epochs):
 
@@ -260,6 +263,12 @@ def train_evaluate_model(config, verbose = True, ray = False, return_obj = True,
         if verbose:
             print(f"Epoch [{epoch + 1}/{max_epochs}] -> Trn Loss: {round(trn_loss, 2)}, Val Loss: {round(val_loss, 2)}, \
 Trn Acc: {round(trn_acc, 3)}, Val Acc: {round(val_acc, 3)}")
+            
+        if config["save"]:
+            if val_acc >= max_val_acc:
+                max_val_acc = val_acc
+                path = f"best_{config['model']}.pt"
+                torch.save(model.state_dict(), path)
 
         if ray:
             session.report({"trn_loss": trn_loss, "val_loss": val_loss,
