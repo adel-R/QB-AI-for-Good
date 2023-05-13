@@ -17,7 +17,7 @@ def get_transform(visualize = False):
     # get preprocessing settings from .ini
     MEAN, STD = [60.0644191863925 / 65535.0], [58.84460681054689 / 65535.0]
 
-    transform_list = [
+    trn_transform_list = [
             # necessary as we work with uint16 images (https://albumentations.ai/docs/examples/example_16_bit_tiff/)
             A.ToFloat(max_value = 65535.0),
             # random permutations
@@ -29,10 +29,22 @@ def get_transform(visualize = False):
             A.Normalize(mean = MEAN, std = STD),
             ToTensorV2()
     ]
+
+    valtst_transform_list = [
+            # necessary as we work with uint16 images (https://albumentations.ai/docs/examples/example_16_bit_tiff/)
+            A.ToFloat(max_value = 65535.0),
+            # color augmentations
+            A.UnsharpMask(p = 1), # always sharpen the image
+            # normalize & convert data to tensor
+            A.Normalize(mean = MEAN, std = STD),
+            ToTensorV2()
+    ]
     
     if visualize:
-        transform_list = transform_list[:-2]  # Remove the last two transforms
-        transform_list.append(A.FromFloat(max_value=65535.0)) 
-        return A.Compose(transform_list)
+        trn_transform_list = trn_transform_list[:-2]  # Remove the last two transforms
+        trn_transform_list.append(A.FromFloat(max_value=65535.0)) 
+        valtst_transform_list = valtst_transform_list[:-2]
+        valtst_transform_list.append(A.FromFloat(max_value=65535.0))
+        return A.Compose(trn_transform_list), A.Compose(valtst_transform_list)
     
-    return A.Compose(transform_list)
+    return A.Compose(trn_transform_list), A.Compose(valtst_transform_list)

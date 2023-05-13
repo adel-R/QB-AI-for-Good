@@ -44,7 +44,7 @@ def set_reproducible():
 def get_datasets(config):
 
     # get transforms
-    transform = prepData.get_transform() # to be applied during training
+    trn_transform, valtst_transform = prepData.get_transform() # to be applied during training
 
     # fetch metadata
     trnval_metadata = loadData.load_metadata(config["dir"] + "\\images\\metadata.csv", set = "train")
@@ -54,9 +54,9 @@ def get_datasets(config):
     trn_metadata, val_metadata = loadData.trainval_split(trnval_metadata, val_size = 0.2)
 
     # get pytorch datasets for modeling
-    trn_dataset = loadData.CustomDataset(trn_metadata, transform = transform, apply_CLAHE = True, dir = config["dir"])
-    val_dataset = loadData.CustomDataset(val_metadata, transform = transform, apply_CLAHE = True, dir = config["dir"])
-    tst_dataset = loadData.CustomDataset(tst_metadata, transform = transform, apply_CLAHE = True, dir = config["dir"])
+    trn_dataset = loadData.CustomDataset(trn_metadata, transform = trn_transform, apply_CLAHE = True, dir = config["dir"])
+    val_dataset = loadData.CustomDataset(val_metadata, transform = valtst_transform, apply_CLAHE = True, dir = config["dir"])
+    tst_dataset = loadData.CustomDataset(tst_metadata, transform = valtst_transform, apply_CLAHE = True, dir = config["dir"])
 
     return trn_dataset, val_dataset, tst_dataset
 
@@ -189,7 +189,7 @@ def train_epoch(dataloader, model, optimizer, scheduler, scheduler_step, criteri
 
 def test_epoch(dataloader, model, criterion, device):
     
-    model.train()
+    model.eval()
     losses = []
     idxs = torch.Tensor([])
     lbls = torch.Tensor([])
