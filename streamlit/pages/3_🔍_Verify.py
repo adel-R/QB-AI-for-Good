@@ -10,6 +10,7 @@ from streamlit_folium import st_folium
 import datetime
 import branca
 import torch
+from sklearn.metrics import accuracy_score, roc_auc_score
 
 # Layout
 st.set_page_config(layout="wide")
@@ -166,7 +167,6 @@ else:
 
 
     ### Prediction from model 
-
     def predict(dataloader, model, criterion, device,test_set=True):
         model.eval()
         losses = []
@@ -206,4 +206,11 @@ else:
                 # logging
                 losses.append(loss.item())
                 preds = torch.cat((preds, torch.sigmoid(logits).cpu()))
+                
+            # compute stats
+            acc = accuracy_score(lbls.detach().numpy(), (preds.detach().numpy() > 0.5))
+            auc = roc_auc_score(lbls.detach().numpy(), preds.detach().numpy())
+            loss_mean = np.mean(losses)
+            
+            return acc, auc, loss_mean
 
