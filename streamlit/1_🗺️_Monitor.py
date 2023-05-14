@@ -123,12 +123,13 @@ if gdf_filtered.shape[0]<1:
     st.header('No Result found for this query')
 else:
     #Filter on the columns to be displayed
-    gdf_filtered = gdf_filtered.rename(columns={'Concentrat':'Concentration Uncertainty (ppm m) ',
-                                                 'Max Plume':'Max Plume Concentration (ppm m) ',
-                                                 'Emission': 'Estimated Emission rate (CH4 tonnes/hour) ',
-                                                 'Duration':'Estimated Duration (hours) ',
-                                                 'Total' : 'Total Emissions (kt CH4) ' ,
-                                                 'CO2eq': 'Total Emissions (kt CO2eq)' })
+    gdf_filtered = gdf_filtered.rename(columns={'Concentrat':'Concentration Uncertainty (ppm m)',
+                                                 'Max Plume':'Max Plume Concentration (ppm m)',
+                                                 'Emission': 'Estimated Emission rate (CH4 tonnes/hour)',
+                                                 'Duration':'Estimated Duration (hours)',
+                                                 'Total' : 'Total Emissions (kt CH4)' ,
+                                                 'CO2eq': 'Total Emissions (kt CO2eq)',
+                                                 'Credit' : 'Carbon Credit cost ($)' })
     display_columns = ['id_coord',
                         'plume',
                         'city',
@@ -136,13 +137,15 @@ else:
                         'company',
                         'sector',
                         'geometry',
-                        'Concentration Uncertainty (ppm m) ',
-                        'Max Plume Concentration (ppm m) ',
+                        'Concentration Uncertainty (ppm m)',
+                        'Max Plume Concentration (ppm m)',
                         'datetime',
-                        'Estimated Emission rate (CH4 tonnes/hour) ',
-                        'Estimated Duration (hours) ',
-                        'Total Emissions (kt CH4) ',
-                        'Total Emissions (kt CO2eq)']
+                        'Estimated Emission rate (CH4 tonnes/hour)',
+                        'Estimated Duration (hours)',
+                        'Total Emissions (kt CH4)',
+                        'Total Emissions (kt CO2eq)',
+                        'Carbon Credit cost ($)']
+    
     gdf_map = gdf_filtered[display_columns]
 
     map = gdf_map.explore("plume", location=(29.63, 80),tiles = "CartoDB positron", cmap = "RdYlGn_r",zoom_start=2)

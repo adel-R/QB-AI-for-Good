@@ -124,7 +124,8 @@ else:
                                                  'Emission': 'Estimated Emission rate (CH4 tonnes/hour)',
                                                  'Duration':'Estimated Duration (hours)',
                                                  'Total' : 'Total Emissions (kt CH4)' ,
-                                                 'CO2eq': 'Total Emissions (kt CO2eq)' })
+                                                 'CO2eq': 'Total Emissions (kt CO2eq)',
+                                                 'Credit' : 'Carbon Credit cost ($)' })
     display_columns = ['id_coord',
                         'plume',
                         'city',
@@ -138,7 +139,8 @@ else:
                         'Estimated Emission rate (CH4 tonnes/hour)',
                         'Estimated Duration (hours)',
                         'Total Emissions (kt CH4)',
-                        'Total Emissions (kt CO2eq)']
+                        'Total Emissions (kt CO2eq)',
+                        'Carbon Credit cost ($)']
 
     # Filter on display columns
     gdf_filtered = gdf_filtered[display_columns]

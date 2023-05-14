@@ -130,41 +130,40 @@ else:
     gdf_filtered = gdf_filtered.rename(columns={'Concentrat':'Concentration Uncertainty (ppm m)',
                                                  'Max Plume':'Max Plume Concentration (ppm m)',
                                                  'Emission': 'Estimated Emission rate (CH4 tonnes/hour)',
-                                                 'Duration':'Estimated Duration (hours)',
+                                                 'Duration':'Days since',
                                                  'Total' : 'Total Emissions (kt CH4)' ,
-                                                 'CO2eq': 'Total Emissions (kt CO2eq)' })
-    display_columns = ['id_coord',
-                        'plume',
+                                                 'CO2eq': 'Emissions (kt CO2eq)',
+                                                 'Site' : 'Site ID',
+                                                 'Credit' : 'Carbon Credit cost ($)' })
+    
+    display_columns = ['Site ID',
                         'city',
                         'country',
                         'company',
-                        'sector',
-                        'Concentration Uncertainty (ppm m)',
-                        'Max Plume Concentration (ppm m)',
-                        'datetime',
-                        'Estimated Emission rate (CH4 tonnes/hour)',
-                        'Estimated Duration (hours)',
-                        'Total Emissions (kt CH4)',
-                        'Total Emissions (kt CO2eq)']
+                        'plume',
+                        'Status',
+                        'Days since',
+                        'Contact']
+
 
     # Filter on display columns
     gdf_filtered = gdf_filtered[display_columns]
     
     ### Prediction from model 
     # Title and Side Bar for filters
-    st.title("Follow-up of open leaks")
+    st.title("Follow-up and Verification")
 
-    # Boolean to resize the dataframe, stored as a session state variable
-    st.checkbox("Use container width", value=False, key="use_container_width")
+    # # Boolean to resize the dataframe, stored as a session state variable
+    # st.checkbox("Use container width", value=False, key="use_container_width")
 
-    # Follow-up dataframe
-    display_image = st.session_state.use_container_width
+    # # Follow-up dataframe
+    # display_image = st.session_state.use_container_width
 
     # columns
     col1, col2 = st.columns([6,1])
 
     with col1:
-        st.dataframe(pd.DataFrame(gdf_filtered),height = 500 , use_container_width=True)
+        st.dataframe(pd.DataFrame(gdf_filtered),height = 530 , use_container_width=True)
 
     with col2:
         st.write('Original image')
@@ -180,7 +179,7 @@ else:
         st.image(gradcam_image,use_column_width=True)        
 
     # Title and Side Bar for filters
-    st.title("Add new entries")
+    st.header("Add new entries")
     # Add New entry for prediction
     zipfile = st.file_uploader('Upload satelite images to predict potential plumes:', type=None, accept_multiple_files=False, help='The zip file must contain no subfolders. The metadata must contain complete and accurate information.')
 
