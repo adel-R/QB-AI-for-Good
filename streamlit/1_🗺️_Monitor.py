@@ -40,7 +40,7 @@ base_path = os.path.abspath(__file__)
 file_path = os.path.dirname(base_path) + "/map/map.shp"
 
 # read map file
-gdf = gpd.read_file(file_path) 
+gdf = gpd.read_file(file_path)
 
 # Add datetime
 gdf['datetime'] =  pd.to_datetime(gdf['date'], format= "%Y%m%d")
@@ -131,7 +131,7 @@ else:
                                                  'CO2eq': 'Total Emissions (kt CO2eq)' })
     display_columns = ['id_coord',
                         'plume',
-                        'city', 
+                        'city',
                         'country',
                         'company',
                         'sector',
@@ -144,18 +144,18 @@ else:
                         'Total Emissions (kt CH4) ',
                         'Total Emissions (kt CO2eq)']
     gdf_map = gdf_filtered[display_columns]
-    
+
     map = gdf_map.explore("plume", location=(29.63, 80),tiles = "CartoDB positron", cmap = "RdYlGn_r",zoom_start=2)
 
     # Legend
     legend_html = '''
     {% macro html(this, kwargs) %}
     <div style="
-        position: fixed; 
+        position: fixed;
         bottom: 7%;
         right: 2%;
         width: 100px;
-        height: 35px; 
+        height: 35px;
         z-index:9998;
         font-size:80%;
         background-color: #ffffff;
