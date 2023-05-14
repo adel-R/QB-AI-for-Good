@@ -34,7 +34,7 @@ st.markdown(f"""
 )
 
 # read map file
-gdf = gpd.read_file("map/map.shp") 
+gdf = gpd.read_file("/Users/clarabesnard/Desktop/Desktop - MacBook Air de Clara (2)/DSBA 2/QB/QB-AI-for-Good/streamlit/map/map.shp")
 
 # Add datetime
 gdf['datetime'] =  pd.to_datetime(gdf['date'], format= "%Y%m%d")
@@ -125,7 +125,7 @@ else:
                                                  'CO2eq': 'Total Emissions (kt CO2eq)' })
     display_columns = ['id_coord',
                         'plume',
-                        'city', 
+                        'city',
                         'country',
                         'company',
                         'sector',
@@ -138,18 +138,18 @@ else:
                         'Total Emissions (kt CH4) ',
                         'Total Emissions (kt CO2eq)']
     gdf_map = gdf_filtered[display_columns]
-    
+
     map = gdf_map.explore("plume", location=(29.63, 80),tiles = "CartoDB positron", cmap = "RdYlGn_r",zoom_start=2)
 
     # Legend
     legend_html = '''
     {% macro html(this, kwargs) %}
     <div style="
-        position: fixed; 
+        position: fixed;
         bottom: 7%;
         right: 2%;
         width: 100px;
-        height: 35px; 
+        height: 35px;
         z-index:9998;
         font-size:80%;
         background-color: #ffffff;
