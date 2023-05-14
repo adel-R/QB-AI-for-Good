@@ -9,6 +9,7 @@ import streamlit as st
 from streamlit_folium import st_folium
 import datetime
 import branca
+import torch
 
 # Layout
 st.set_page_config(layout="wide")
@@ -162,3 +163,47 @@ else:
 
     #folium_map
     folium_map = st_folium(map, width=1500, height=600)
+
+
+    ### Prediction from model 
+
+    def predict(dataloader, model, criterion, device,test_set=True):
+        model.eval()
+        losses = []
+        idxs = torch.Tensor([])
+        lbls = torch.Tensor([])
+        preds = torch.Tensor([])
+        
+        if test_set:
+            for batch_idx, batch in enumerate(dataloader):
+                # decompose batch and move to device
+                idx_batch, img_batch, lbl_batch = batch
+                idxs = torch.cat((idxs, idx_batch))
+                lbls = torch.cat((lbls, lbl_batch))
+                lbl_batch = lbl_batch.type(torch.float32) # cast to long to be able to compute loss
+                img_batch, lbl_batch = img_batch.to(device), lbl_batch.to(device)
+                
+                # forward
+                logits = model(img_batch).float().squeeze(1)
+                loss = criterion(logits.to(device), lbl_batch)
+                
+                # logging
+                losses.append(loss.item())
+                preds = torch.cat((preds, torch.sigmoid(logits).cpu()))
+        else:
+            for batch_idx, batch in enumerate(dataloader):
+                # decompose batch and move to device
+                idx_batch, img_batch, lbl_batch = batch
+                idxs = torch.cat((idxs, idx_batch))
+                lbls = torch.cat((lbls, lbl_batch))
+                lbl_batch = lbl_batch.type(torch.float32) # cast to long to be able to compute loss
+                img_batch, lbl_batch = img_batch.to(device), lbl_batch.to(device)
+                
+                # forward
+                logits = model(img_batch).float().squeeze(1)
+                loss = criterion(logits.to(device), lbl_batch)
+                
+                # logging
+                losses.append(loss.item())
+                preds = torch.cat((preds, torch.sigmoid(logits).cpu()))
+
