@@ -1,12 +1,10 @@
 branca==0.6.0
-c
 Fiona==1.9.3
 folium==0.14.0
 geocoder==1.38.1
 geopandas==0.13.0
 mapclassify==2.5.0
 matplotlib
-matplotlib-inline @ file:///home/conda/feedstock_root/build_artifacts/matplotlib-inline_1660814786464/work
 networkx==3.1
 numpy==1.24.3
 openpyxl==3.1.2
