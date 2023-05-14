@@ -33,8 +33,14 @@ st.markdown(f"""
     unsafe_allow_html=True,
 )
 
+# Get the base path of the Streamlit app
+base_path = os.path.abspath(__file__)
+
+# Specify the relative path to the Shapefile within the subfolder
+file_path = os.path.dirname(base_path) + "/map/map.shp"
+
 # read map file
-gdf = gpd.read_file("map/map.shp") 
+gdf = gpd.read_file(file_path) 
 
 # Add datetime
 gdf['datetime'] =  pd.to_datetime(gdf['date'], format= "%Y%m%d")
