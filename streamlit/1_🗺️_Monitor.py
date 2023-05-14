@@ -163,8 +163,8 @@ else:
         ">
 
         <p style='margin:auto;display:flex;flex-direction: column;align-items: center;justify-content: center;'>
-            <div style='margin-left:15px'><span style="color:#a30021">&#9679;</span>&emsp;plume</div>
-            <div style='margin-left:15px'><span style="color:#006837">&#9679;</span>&emsp;no plume</div>
+            <div style='margin-left:15px;color:black'><span style="color:#a30021">&#9679;</span>&emsp;plume</div>
+            <div style='margin-left:15px;color:black'><span style="color:#006837">&#9679;</span>&emsp;no plume</div>
         </p>
 
     </div>
