@@ -1,119 +1,28 @@
-affine==2.4.0
-aiosignal==1.3.1
-altair==4.2.2
-asttokens @ file:///home/conda/feedstock_root/build_artifacts/asttokens_1670263926556/work
-attrs==23.1.0
-backcall @ file:///home/conda/feedstock_root/build_artifacts/backcall_1592338393461/work
-backports.functools-lru-cache @ file:///home/conda/feedstock_root/build_artifacts/backports.functools_lru_cache_1618230623929/work
-blinker==1.6.2
 branca==0.6.0
-cachetools==5.3.0
-certifi==2023.5.7
-charset-normalizer==3.1.0
-click==8.1.3
-click-plugins==1.1.1
-cligj==0.7.2
-colorama @ file:///home/conda/feedstock_root/build_artifacts/colorama_1666700638685/work
-contourpy==1.0.7
-cycler==0.11.0
-debugpy @ file:///C:/ci/debugpy_1637091961445/work
-decorator @ file:///home/conda/feedstock_root/build_artifacts/decorator_1641555617451/work
-distlib==0.3.6
-entrypoints==0.4
-et-xmlfile==1.1.0
-executing @ file:///home/conda/feedstock_root/build_artifacts/executing_1667317341051/work
-filelock==3.12.0
+c
 Fiona==1.9.3
 folium==0.14.0
-fonttools==4.39.4
-frozenlist==1.3.3
-future==0.18.3
 geocoder==1.38.1
 geopandas==0.13.0
-gitdb==4.0.10
-GitPython==3.1.31
-grpcio==1.51.3
-idna==3.4
-importlib-metadata @ file:///home/conda/feedstock_root/build_artifacts/importlib-metadata_1682176699712/work
-importlib-resources==5.12.0
-ipykernel @ file:///D:/bld/ipykernel_1655369313836/work
-ipython @ file:///D:/bld/ipython_1683226233552/work
-jedi @ file:///home/conda/feedstock_root/build_artifacts/jedi_1669134318875/work
-Jinja2==3.1.2
-joblib==1.2.0
-jsonschema==4.17.3
-jupyter_client @ file:///home/conda/feedstock_root/build_artifacts/jupyter_client_1681432441054/work
-jupyter_core @ file:///D:/bld/jupyter_core_1678994368923/work
-kiwisolver==1.4.4
 mapclassify==2.5.0
-markdown-it-py==2.2.0
-MarkupSafe==2.1.2
-matplotlib==3.7.1
+matplotlib
 matplotlib-inline @ file:///home/conda/feedstock_root/build_artifacts/matplotlib-inline_1660814786464/work
-mdurl==0.1.2
-mpmath==1.3.0
-msgpack==1.0.5
-munch==2.5.0
-nest-asyncio @ file:///home/conda/feedstock_root/build_artifacts/nest-asyncio_1664684991461/work
 networkx==3.1
 numpy==1.24.3
 openpyxl==3.1.2
-packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1681337016113/work
 pandas==2.0.1
-parso @ file:///home/conda/feedstock_root/build_artifacts/parso_1638334955874/work
-pickleshare @ file:///home/conda/feedstock_root/build_artifacts/pickleshare_1602536217715/work
-Pillow==9.5.0
-platformdirs @ file:///home/conda/feedstock_root/build_artifacts/platformdirs_1683850015520/work
 plotly==5.14.1
-prompt-toolkit @ file:///home/conda/feedstock_root/build_artifacts/prompt-toolkit_1677600924538/work
-protobuf==3.20.3
-psutil @ file:///C:/Windows/Temp/abs_b2c2fd7f-9fd5-4756-95ea-8aed74d0039flsd9qufz/croots/recipe/psutil_1656431277748/work
-pure-eval @ file:///home/conda/feedstock_root/build_artifacts/pure_eval_1642875951954/work
 pyarrow==12.0.0
 pycountry==22.3.5
 pydeck==0.8.1b0
-Pygments @ file:///home/conda/feedstock_root/build_artifacts/pygments_1681904169130/work
-Pympler==1.0.1
-pyparsing==3.0.9
-pyproj==3.5.0
-pyrsistent==0.19.3
-python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1626286286081/work
-pytz==2023.3
-pytz-deprecation-shim==0.1.0.post0
-pywin32==305.1
-PyYAML==6.0
-pyzmq @ file:///C:/b/abs_8b16zbmf46/croot/pyzmq_1682697651374/work
 rasterio==1.3.6
-ratelim==0.1.6
 ray==2.4.0
-requests==2.30.0
 reverse-geocoder==1.5.1
-rich==13.3.5
 scikit-learn==1.2.2
 scipy==1.10.1
 shapely==2.0.1
-six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
-sklearn==0.0.post5
-smmap==5.0.0
-snuggs==1.4.7
-stack-data @ file:///home/conda/feedstock_root/build_artifacts/stack_data_1669632077133/work
+sklearn
 streamlit==1.22.0
 streamlit-folium==0.11.1
-sympy==1.12
-tenacity==8.2.2
-threadpoolctl==3.1.0
-toml==0.10.2
-toolz==0.12.0
 torch==2.0.1
-tornado @ file:///D:/bld/tornado_1656937934674/work
-traitlets @ file:///home/conda/feedstock_root/build_artifacts/traitlets_1675110562325/work
-typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/typing_extensions_1678559861143/work
-tzdata==2023.3
-tzlocal==4.3
-urllib3==2.0.2
-validators==0.20.0
-virtualenv==20.21.0
-watchdog==3.0.0
-wcwidth @ file:///home/conda/feedstock_root/build_artifacts/wcwidth_1673864653149/work
 xgboost==1.7.5
-zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1677313463193/work
