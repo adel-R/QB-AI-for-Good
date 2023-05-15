@@ -12,20 +12,8 @@ import branca
 import torch
 from sklearn.metrics import accuracy_score, roc_auc_score
 from PIL import Image
-# import sys
-# # sys.path.append("../")  
-# # Get the absolute path of the current script
-# current_path = os.path.abspath(__file__)
-
-# # Get the parent directory of the current script
-# parent_directory = os.path.dirname(current_path)
-
-# # Append the parent directory to the Python path
-# sys.path.append(os.path.join(parent_directory, ".."))
-# print(os.path.join(parent_directory, ".."))
-
-# import util.inference
-# import util.modeling
+import util.inference
+import util.modeling
 
 
 # Layout
