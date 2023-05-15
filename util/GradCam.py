@@ -54,19 +54,17 @@ def get_heatmap(model, path_to_img, device, layer_number=4, alpha=0.4, against_l
     against_label if None, then gradients computed against predicted label, if 1 or 0 then
     gradients computed against given label
     """
-    # creating GradCam model
-    gcmodel = GradCamModel(model=model, layer_number=layer_number)
-
     # getting image
     img_tensor, img_raw = inference.prep_single_image(path_to_img)
     img_tensor = img_tensor.unsqueeze(0).to(device)
 
-    # get activations and output of model
-    out, acts = gcmodel(img_tensor)
-
-    if not against_label:
+    if against_label is None:
+        # Getting predictions from model in eval state (since eval turns off droput etc. we
+        # need to do it separately
+        model.eval()
         # Getting prediction probabilities
-        prob = torch.sigmoid(out)
+        prob = torch.sigmoid(model(img_tensor))
+        model.train()
         # Converting probabilities into predictions
         if prob.item() > .5:
             lbl = 1
@@ -75,6 +73,12 @@ def get_heatmap(model, path_to_img, device, layer_number=4, alpha=0.4, against_l
     else:
         lbl = against_label
 
+    # creating GradCam model
+    gcmodel = GradCamModel(model=model, layer_number=layer_number)
+
+    # get activations and output of model
+    out, acts = gcmodel(img_tensor)
+
     # detach activations
     acts = acts.detach().cpu()
 
@@ -82,6 +86,7 @@ def get_heatmap(model, path_to_img, device, layer_number=4, alpha=0.4, against_l
     lbl_tensor = torch.tensor([lbl], dtype=torch.float32).to(device).unsqueeze(0)
 
     # compute loss
+    gcmodel.zero_grad()  # Clear gradients
     loss = nn.BCEWithLogitsLoss()(out, lbl_tensor)
     loss.backward()
 
@@ -108,7 +113,7 @@ def get_heatmap(model, path_to_img, device, layer_number=4, alpha=0.4, against_l
     return heatmap_j2, img_raw, lbl
 
 
-def visualize_heatmap(img, heatmap_j2, lbl):
+def visualize_heatmap(img, heatmap_j2, lbl, save_fig=False, file_name=None):
     fig, axs = plt.subplots(1, 1, figsize=(5, 5))
     axs.imshow(img, cmap="gray_r")
     axs.imshow(heatmap_j2[0][0])
@@ -116,6 +121,14 @@ def visualize_heatmap(img, heatmap_j2, lbl):
         title = "image having plume"
     else:
         title = "image not having plume"
-    plt.title(f"Gradients areas with w.r.t {title}")
+    plt.title(f"Gradients areas w.r.t {title}")
     plt.axis('off')
-    plt.show()
+    if save_fig:
+        if file_name is not None:
+            plt.savefig(file_name + ".png")
+            print("Figure saved.")
+        else:
+            print("Please provide a valid file name for saving the figure.")
+    else:
+        plt.ioff()
+        plt.show()
