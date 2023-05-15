@@ -61,12 +61,12 @@ def init_data(config):
     trn_datasets = []
     val_datasets = []
     for k in range(config["k_cv"]):
-        trn_dataset = loadData.CustomDataset(folds[k]["train"], transform = trn_transform, resize = config["resize"], apply_CLAHE = config["apply_CLAHE"], dir = config["dir"])
-        val_dataset = loadData.CustomDataset(folds[k]["val"],   transform = valtst_transform, resize = config["resize"], apply_CLAHE = config["apply_CLAHE"], dir = config["dir"])
+        trn_dataset = loadData.CustomDataset(folds[k]["train"].reset_index(), transform = trn_transform, resize = config["resize"], apply_CLAHE = config["apply_CLAHE"], dir = config["dir"])
+        val_dataset = loadData.CustomDataset(folds[k]["val"].reset_index(),   transform = valtst_transform, resize = config["resize"], apply_CLAHE = config["apply_CLAHE"], dir = config["dir"])
         trn_datasets.append(trn_dataset)
         val_datasets.append(val_dataset)
 
-    tst_dataset = loadData.CustomDataset(tst_metadata, transform = valtst_transform, resize = config["resize"], apply_CLAHE = config["apply_CLAHE"], dir = config["dir"])
+    tst_dataset = loadData.CustomDataset(tst_metadata.reset_index(), transform = valtst_transform, resize = config["resize"], apply_CLAHE = config["apply_CLAHE"], dir = config["dir"])
 
     # get pytorch dataloaders
     trnloaders = []
