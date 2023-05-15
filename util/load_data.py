@@ -49,6 +49,82 @@ def trainval_split(metadata, val_size = 0.2):
     return trn_metadata.reset_index(), val_metadata.reset_index()
 
 
+def stratified_split(df, k, test_size = None):
+    """
+    Splits a dataframe into train, validation and optional test sets in a stratified manner.
+
+    Parameters:
+    df (pd.DataFrame): The dataframe to split.
+    k (int): The number of folds to split the data into for cross-validation.
+    test_size (float, optional): If provided, the proportion of data to include in the test split.
+
+    Returns:
+    folds (dict): A dictionary of train and validation dataframes for each fold.
+    test_df (pd.DataFrame): A dataframe for the test set, only if test_size is provided.
+    """
+
+    # Obtain unique location identifiers
+    unique_id_coords = df['id_coord'].unique()
+    np.random.shuffle(unique_id_coords)  # shuffle the unique IDs
+
+    # If a test_size is provided, create a separate test set
+    if test_size is not None:
+        test_id_coords = []
+        test_count = 0
+        test_size_total = int(test_size * len(df))
+
+        # Loop over each unique ID, add to test set until test set size threshold is reached
+        for id_coord in unique_id_coords:
+            id_coord_df = df[df['id_coord'] == id_coord]
+            if (test_count + len(id_coord_df) <= test_size_total):
+                test_id_coords.append(id_coord)
+                test_count += len(id_coord_df)
+            else:
+                break
+
+        # Create test_df and the remaining df for train-val splitting
+        test_df = df[df['id_coord'].isin(test_id_coords)]
+        df_trainval = df[~df['id_coord'].isin(test_id_coords)]
+        unique_id_coords = [id_coord for id_coord in unique_id_coords if id_coord not in test_id_coords]
+    else:
+        df_trainval = df
+
+    folds = {}
+    size_per_fold = len(df_trainval) / k
+
+    # Create k folds
+    for i in range(k):
+        train_id_coords = []
+        val_id_coords = []
+
+        val_count = 0
+
+        # Loop over each unique ID, add to validation set until validation set size threshold is reached
+        for id_coord in unique_id_coords:
+            id_coord_df = df_trainval[df_trainval['id_coord'] == id_coord]
+            if (val_count + len(id_coord_df) <= size_per_fold) or (i == k - 1 and val_count < size_per_fold):
+                val_id_coords.append(id_coord)
+                val_count += len(id_coord_df)
+            else:
+                train_id_coords.append(id_coord)
+
+        # Create train_df and val_df for the current fold
+        train_df = df_trainval[df_trainval['id_coord'].isin(train_id_coords)]
+        val_df = df_trainval[df_trainval['id_coord'].isin(val_id_coords)]
+
+        folds[i] = {'train': train_df, 'val': val_df}
+
+        # Update df_trainval and unique_id_coords for the next iteration
+        df_trainval = df_trainval[~df_trainval['id_coord'].isin(val_id_coords)]
+        unique_id_coords = [id_coord for id_coord in unique_id_coords if id_coord not in val_id_coords]
+
+    # If test_size is provided, return folds and test_df; otherwise, return only folds
+    if test_size is not None:
+        return folds, test_df
+    else:
+        return folds
+
+
 class CustomDataset(Dataset):
     """
     Dataset with input as path to metadata.csv file (so we don't have to load the whole Data in memory)
