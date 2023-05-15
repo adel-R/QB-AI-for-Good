@@ -221,62 +221,90 @@ def test_epoch(dataloader, model, criterion, device):
     return acc, auc, loss_mean
 
 
+def get_metric_from_matrix(matrix, dict_idxs):
+    """
+    Returns mean of maxs of columns
+    """
+    result = []
+    for k, epoch in dict_idxs.items():
+        result.append(matrix[epoch, k])
+    return np.mean(result)
+
+
 def train_evaluate_model(config, verbose = True, ray = False, return_obj = True, use_model = None):
     """
     Function that aggregates everything in one place to start model training.
     """
     # maximum number of epochs to train
     max_epochs = int(config["max_epochs"])
-    
+
     # train and evaluate the model
-    trn_losses = np.zeros(max_epochs)
-    val_losses = np.zeros(max_epochs)
-    trn_accs = np.zeros(max_epochs)
-    val_accs = np.zeros(max_epochs)
-    
+    trn_losses = np.zeros((max_epochs, config["k_cv"]))
+    val_losses = np.zeros((max_epochs, config["k_cv"]))
+    trn_accs = np.zeros((max_epochs, config["k_cv"]))
+    val_accs = np.zeros((max_epochs, config["k_cv"]))
+    trn_aucs = np.zeros((max_epochs, config["k_cv"]))
+    val_aucs = np.zeros((max_epochs, config["k_cv"]))
+
+    best_models_indicies = {}
     print(f'We have started training') if verbose else None
-       
-    # set up model
-    (model, optimizer, trnloader, valloader, tstloader, scheduler, scheduler_step, criterion, device) = init_training(config)
 
-    # perform training
-    max_val_auc = 0
-    
-    for epoch in range(max_epochs):
+    # Running k-fold cv
+    for k in range(config["k_cv"]):
+        print(f"Starting fold [{k+1}/{config['k_cv']}]")
+        # set up model
+        (model, optimizer, trnloader, valloader, tstloader, scheduler, scheduler_step, criterion, device) = init_training(config)
 
-        ##TRAINING##
-        trn_acc, trn_auc, trn_loss = train_epoch(trnloader, model, optimizer,
-                                        scheduler, scheduler_step,
-                                        criterion, device)
+        # perform training
+        max_val_auc = 0
 
-        ##VALIDATION##
-        val_acc, val_auc, val_loss = test_epoch(valloader, model, criterion, device)
+        for epoch in range(max_epochs):
 
-        ##SCHEDULE learning rate if necessary##
-        if scheduler_step == "every epoch":
-            scheduler.step()
+            ##TRAINING##
+            trn_acc, trn_auc, trn_loss = train_epoch(trnloader, model, optimizer,
+                                            scheduler, scheduler_step,
+                                            criterion, device)
 
-        ##LOGGING##
-        trn_losses[epoch] = trn_loss
-        val_losses[epoch] = val_loss
-        trn_accs[epoch] = trn_acc
-        val_accs[epoch] = val_acc
+            ##VALIDATION##
+            val_acc, val_auc, val_loss = test_epoch(valloader, model, criterion, device)
+
+            ##SCHEDULE learning rate if necessary##
+            if scheduler_step == "every epoch":
+                scheduler.step()
+
+            ##LOGGING##
+            trn_losses[epoch, k] = trn_loss
+            val_losses[epoch, k] = val_loss
+            trn_accs[epoch, k] = trn_acc
+            val_accs[epoch, k] = val_acc
+            trn_aucs[epoch, k] = trn_auc
+            val_aucs[epoch, k] = val_auc
             
-        ##REPORT##
-        if verbose:
-            print(f"Epoch [{epoch + 1}/{max_epochs}] -> Trn Loss: {round(trn_loss, 2)}, Val Loss: {round(val_loss, 2)}, \
-Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(val_auc, 3)}")
+            ##REPORT##
+            if verbose:
+                print(f"Epoch [{epoch + 1}/{max_epochs}] fold [{k+1}/{config['k_cv']}]-> Trn Loss: {round(trn_loss, 2)}, \
+Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(val_auc, 3)}")
             
-        if config["save"]:
-            if val_auc >= max_val_auc:
-                max_val_auc = val_auc
-                path = f"best_{config['model']}.pt"
-                torch.save(model.state_dict(), path)
+            if config["save"]:
+                if val_auc >= max_val_auc:
+                    max_val_auc = val_auc
+                    path = f"best_{config['model']}_fold_{k}.pt"
+                    torch.save(model.state_dict(), path)
+                    best_models_indicies[k] = epoch # needed as we are reporting multiple metrics
 
-        if ray:
-            session.report({"trn_loss": trn_loss, "val_loss": val_loss,
-                            "trn_acc": trn_acc, "val_acc": val_acc,
-                            "trn_auc": trn_auc, "val_auc": val_auc})
+    ##########TO DELETE################
+    print("trn_loss", get_metric_from_matrix(trn_losses, best_models_indicies))
+    print("val_loss", get_metric_from_matrix(val_losses, best_models_indicies))
+    print("trn_acc", get_metric_from_matrix(trn_accs, best_models_indicies))
+    print("val_acc", get_metric_from_matrix(val_accs, best_models_indicies))
+    print("trn_auc", get_metric_from_matrix(trn_aucs, best_models_indicies))
+    print("val_auc", get_metric_from_matrix(val_aucs, best_models_indicies))
+    ###################################
+
+    if ray:
+        session.report({"trn_loss": get_metric_from_matrix(trn_losses, best_models_indicies), "val_loss": get_metric_from_matrix(val_losses, best_models_indicies),
+                        "trn_acc": get_metric_from_matrix(trn_accs, best_models_indicies), "val_acc": get_metric_from_matrix(val_accs, best_models_indicies),
+                        "trn_auc": get_metric_from_matrix(trn_aucs, best_models_indicies), "val_auc": get_metric_from_matrix(val_aucs, best_models_indicies)})
     
     if len(tstloader) > 0:
         tst_acc, tst_auc, tst_loss = test_epoch(tstloader, model, criterion, device)
