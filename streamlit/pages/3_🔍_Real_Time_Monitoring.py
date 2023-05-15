@@ -189,7 +189,7 @@ else:
             st.dataframe(pd.DataFrame(gdf_filtered),height = 530 , use_container_width=True)
 
         with col2:
-            st.write('Original image')
+            st.write('Most recent image')
             st.image(original_image,use_column_width=True) 
             st.divider()
             st.write('Heatmap')
