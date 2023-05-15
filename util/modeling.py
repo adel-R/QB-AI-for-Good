@@ -201,7 +201,7 @@ def train_epoch(dataloader, model, optimizer, scheduler, scheduler_step, criteri
 
 
 @torch.no_grad()
-def test_epoch(dataloader, model, criterion, device):
+def test_epoch(dataloader, model, criterion, device, return_preds=False):
     
     model.eval()
     losses = []
@@ -229,8 +229,11 @@ def test_epoch(dataloader, model, criterion, device):
     acc = accuracy_score(lbls.detach().numpy(), (preds.detach().numpy() > 0.5))
     auc = roc_auc_score(lbls.detach().numpy(), preds.detach().numpy())
     loss_mean = np.mean(losses)
-    
-    return acc, auc, loss_mean
+
+    if return_preds:
+        return acc, auc, loss_mean, preds.detach().numpy(), lbls.detach().numpy()
+    else:
+        return acc, auc, loss_mean
 
 
 def get_metric_from_matrix(matrix, dict_idxs):
@@ -259,6 +262,7 @@ def train_evaluate_model(config, trnloaders, valloaders, tstloader, verbose = Tr
     val_aucs = np.zeros((max_epochs, config["k_cv"]))
 
     best_models_indicies = {}
+    best_models_paths = {}
     print(f'We have started training') if verbose else None
 
     # iterate over all train and testloaders (to handle kfolds training)
@@ -270,7 +274,7 @@ def train_evaluate_model(config, trnloaders, valloaders, tstloader, verbose = Tr
         (model, optimizer, scheduler, scheduler_step, criterion, device) = init_training(config)
 
         # perform training
-        max_val_auc = 0
+        performance_score = 0
 
         for epoch in range(max_epochs):
 
@@ -300,11 +304,12 @@ def train_evaluate_model(config, trnloaders, valloaders, tstloader, verbose = Tr
 Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(val_auc, 3)}")
             
             if config["save"]:
-                if val_auc >= max_val_auc:
-                    max_val_auc = val_auc
-                    path = f"best_{config['model']}_fold{k}.pt"
+                if (val_auc+trn_auc)/2 >= performance_score:
+                    performance_score = (val_auc+trn_auc)/2  # we are penalizing difference between val and train
+                    path = f"best_{config['model']}_fold_{k}.pt"
                     torch.save(model.state_dict(), path)
-                    best_models_indicies[k] = epoch # needed as we are reporting multiple metrics
+                    best_models_indicies[k] = epoch  # needed as we are reporting multiple metrics
+                    best_models_paths[k] = path  # path to best model in kth fold
     
     if ray:
         session.report({"trn_loss": get_metric_from_matrix(trn_losses, best_models_indicies), "val_loss": get_metric_from_matrix(val_losses, best_models_indicies),
@@ -312,8 +317,26 @@ Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(va
                         "trn_auc": get_metric_from_matrix(trn_aucs, best_models_indicies), "val_auc": get_metric_from_matrix(val_aucs, best_models_indicies)})
     
     if len(tstloader) > 0:
-        tst_acc, tst_auc, tst_loss = test_epoch(tstloader, model, criterion, device)
-        print(f"Test Performance -> Loss: {round(tst_loss, 2)}, AUC: {round(tst_auc, 3)}")
+        all_predictions = [] #probabilities for each model
+        all_losses = []
+
+        for k, path in best_models_paths.items():
+            model.load_state_dict(torch.load(path))
+            tst_acc, tst_auc, tst_loss, preds, lbls = test_epoch(tstloader, model, criterion, device, return_preds=True)
+            all_predictions.append(preds)
+            all_losses.append(tst_loss)
+
+        # PREDICTING
+        prob_matrix = np.stack(all_predictions).T
+        if config["prediction_strategy"] == "max":
+            preds = np.max(prob_matrix, axis=1)
+        elif config["prediction_strategy"] == "avg":
+            preds = np.mean(prob_matrix, axis=1)
+        else:
+            assert False, "Specify correct prediction strategy (avg, max)"
+        test_auc = roc_auc_score(lbls, preds)
+
+        print(f"Test Performance -> Loss: {round(np.mean(tst_loss), 2)}, AUC: {round(test_auc, 3)}")
 
     if return_obj:
         return model, trn_losses, val_losses, trn_accs, val_accs, trn_aucs, val_aucs
