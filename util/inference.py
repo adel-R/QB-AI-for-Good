@@ -4,11 +4,11 @@ import torchvision
 import numpy as np
 from PIL import Image
 import cv2
-
 # import own scripts
 import util.preprocess_data as prepData
 
-def load_resnet34(path = "models/best_ResNet34.pt"):
+
+def load_resnet34(path="models/best_ResNet34.pt"):
     weights = "DEFAULT"
 
     # initialize model
@@ -23,22 +23,26 @@ def load_resnet34(path = "models/best_ResNet34.pt"):
     return model
 
 
-def prep_single_image(path_to_img):
+def prep_single_image(path_to_img, apply_CLACHE = False):
     # Getting transformations
     _, valtst_transform = prepData.get_transform()
 
     # Opening image
-    img = np.array(Image.open(path_to_img))  # shape (64, 64)
+    img_raw = np.array(Image.open(path_to_img))  # shape (64, 64)
 
     # Resizing
-    img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_CUBIC)
+    img_raw = cv2.resize(img_raw, (224, 224), interpolation=cv2.INTER_CUBIC)
+    # copy of image
+    img = img_raw
 
     # Applying CLACHE
-    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
-    img = clahe.apply(img)
+    if apply_CLACHE:
+        clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
+        img = clahe.apply(img)
+
     img = valtst_transform(image=img)["image"]
 
-    return img
+    return img, img_raw
 
 
 def infer(model, path_to_img, device, multiple=False):
@@ -47,11 +51,12 @@ def infer(model, path_to_img, device, multiple=False):
     #TODO multiple images inference
     """
     # Transforming image to tensor
-    img_tensor = prep_single_image(path_to_img)
+    img_tensor, img_raw = prep_single_image(path_to_img)
+    img_tensor = img_tensor.unsqueeze(0).to(device)
 
     # Inference
     model.eval()
-    prediction = model(img_tensor.unsqueeze(0).to(device))
+    prediction = model(img_tensor)
     prob = torch.sigmoid(prediction)
 
     # Converting probabilities into predictions
@@ -61,8 +66,3 @@ def infer(model, path_to_img, device, multiple=False):
         output = 0
 
     return prob.item(), output
-
-
-
-
-
