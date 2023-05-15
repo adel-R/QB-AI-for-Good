@@ -12,7 +12,7 @@ import branca
 
 # Layout
 st.set_page_config(layout="wide")
-margin = 0
+margin = 2
 padding = 2
 
 # Layout
@@ -45,9 +45,6 @@ gdf = gpd.read_file(file_path)
 # Add datetime
 gdf['datetime'] =  pd.to_datetime(gdf['date'], format= "%Y%m%d")
 
-
-# Title and Side Bar for filters
-st.title("Monitor methane plumes")
 with st.sidebar:
     st.header('Enter your filters:')
     plumes = st.selectbox('Display', ('All','Only Plumes'))
@@ -118,6 +115,23 @@ with st.sidebar:
         mime='text/csv',
     )
 
+
+## Data
+## Display summary data
+col1, col2, col3, col4 = st.columns([4,1,1,1])
+# Title and Side Bar for filters
+col1.title("Global overview")
+# total sites
+total_site = gdf_filtered['Site'].nunique()
+col2.metric("Total Sites", total_site)
+# open sites
+total_site = gdf_filtered[gdf_filtered['plume'] == 'yes']['Site'].nunique()
+col3.metric("Sites with leaks", total_site)  # intitulé à revoir
+total_site = gdf_filtered[gdf_filtered['plume'] == 'no']['Site'].nunique()
+col4.metric("Sites without leaks", total_site)
+
+
+
 # Write dataframe to map
 if gdf_filtered.shape[0]<1:
     st.header('No Result found for this query')
@@ -146,17 +160,6 @@ else:
                         'Total Emissions (kt CO2eq)',
                         'Carbon Credit cost ($)']
 
-    ## Data
-    ## Display summary data
-    col1, col2, col3 = st.columns(3)
-    # total sites
-    total_site = gdf_filtered['Site'].nunique()
-    col1.metric("Total Sites", total_site)
-    # open sites
-    total_site = gdf_filtered[gdf_filtered['plume'] == 'yes']['Site'].nunique()
-    col2.metric("Sites with leaks", total_site)  # intitulé à revoir
-    total_site = gdf_filtered[gdf_filtered['plume'] == 'no']['Site'].nunique()
-    col3.metric("Sites without leaks", total_site)
 
     ## MAP
     gdf_map = gdf_filtered[display_columns]

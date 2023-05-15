@@ -167,7 +167,7 @@ else:
     
     ### Prediction from model 
     # Title and Side Bar for filters
-    st.title("Follow-up and Verification")
+    st.title("Real Time Monitoring")
 
     # Boolean to resize the dataframe, stored as a session state variable
     st.checkbox("Use container width", value=False, key="use_container_width")
