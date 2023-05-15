@@ -173,60 +173,80 @@ else:
         st.image(original_image,use_column_width=True) 
         st.divider()
         st.write('Heatmap')
-        gradcam_filename = parent_path+'/map/images/plume/20230102_methane_mixing_ratio_id_1465.tif'
+        gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
         gradcam_image = Image.open(original_filename)
         gradcam_image = gradcam_image.convert("RGB")
         st.image(gradcam_image,use_column_width=True)        
 
     # Title and Side Bar for filters
-    st.header("Add new entries")
+    st.header("Inspect entries")
     # Add New entry for prediction
-    zipfile = st.file_uploader('Upload satelite images to predict potential plumes:', type=None, accept_multiple_files=False, help='The zip file must contain no subfolders. The metadata must contain complete and accurate information.')
+    zipfile = st.file_uploader('Upload satelite images and their metadata to identify potential plumes:', type=None, accept_multiple_files=False, help='The zip file must contain no subfolders. The metadata must contain complete and accurate information.')
 
-    def predict(dataloader, model, criterion, device,test_set=True):
+    
+    def predict(dataloader, model, device):
         model.eval()
-        losses = []
         idxs = torch.Tensor([])
-        lbls = torch.Tensor([])
         preds = torch.Tensor([])
         
-        if test_set:
-            for batch_idx, batch in enumerate(dataloader):
-                # decompose batch and move to device
-                idx_batch, img_batch, lbl_batch = batch
-                idxs = torch.cat((idxs, idx_batch))
-                lbls = torch.cat((lbls, lbl_batch))
-                lbl_batch = lbl_batch.type(torch.float32) # cast to long to be able to compute loss
-                img_batch, lbl_batch = img_batch.to(device), lbl_batch.to(device)
-                
-                # forward
-                logits = model(img_batch).float().squeeze(1)
-                loss = criterion(logits.to(device), lbl_batch)
-                
-                # logging
-                losses.append(loss.item())
-                preds = torch.cat((preds, torch.sigmoid(logits).cpu()))
-        else:
-            for batch_idx, batch in enumerate(dataloader):
-                # decompose batch and move to device
-                idx_batch, img_batch, lbl_batch = batch
-                idxs = torch.cat((idxs, idx_batch))
-                lbls = torch.cat((lbls, lbl_batch))
-                lbl_batch = lbl_batch.type(torch.float32) # cast to long to be able to compute loss
-                img_batch, lbl_batch = img_batch.to(device), lbl_batch.to(device)
-                
-                # forward
-                logits = model(img_batch).float().squeeze(1)
-                loss = criterion(logits.to(device), lbl_batch)
-                
-                # logging
-                losses.append(loss.item())
-                preds = torch.cat((preds, torch.sigmoid(logits).cpu()))
-                
-            # compute stats
-            acc = accuracy_score(lbls.detach().numpy(), (preds.detach().numpy() > 0.5))
-            auc = roc_auc_score(lbls.detach().numpy(), preds.detach().numpy())
-            loss_mean = np.mean(losses)
+        for batch_idx, batch in enumerate(dataloader):
+            # decompose batch and move to device
+            idx_batch, img_batch = batch
+            idxs = torch.cat((idxs, idx_batch))
+            img_batch = img_batch.to(device)
             
-            return acc, auc, loss_mean
+            # forward
+            logits = model(img_batch).float().squeeze(1)
+            
+            # logging
+            preds = torch.cat((preds, (torch.sigmoid(logits).cpu()> 0.5)))
 
+        return idxs, preds
+
+    unzipped = 'ABD'
+    
+    # metadata = pd.read_csv(unzipped)
+    # results_idxs,results_preds = predict(dataloader,model,device)
+    
+    if zipfile !=None:
+        if len(unzipped)>5:
+            st.header('The first '+ str(min(len(unzipped),5)) +' results are displayed below')
+        else:
+            st.header('Results are displayed below')
+
+        for i in range(min(len(unzipped),5)):
+            col3,col4 = st.columns(2)
+            
+            with col3:
+                st.subheader('Predictions results for scene ID :'+unzipped)
+                st.write('Scene ID: ')
+                st.write('Date taken: 2222222')
+                st.write('Latitude: 45')
+                st.write('Longitude:30')
+                st.write('Site ID:')
+                st.write('City:')
+                st.write('Country:')
+                st.write('Original Image name: FOO.tif')
+                st.write('Heatmap Image name: FOO_heatmap.tif')
+                if i>0:
+                    st.subheader(':warning: :red[A plume has been identified]')
+                else:
+                    st.subheader(':heavy_check_mark: :green[No plume has been identified]')
+
+
+            with col4:
+                gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
+                gradcam_image = Image.open(original_filename)
+                gradcam_image = gradcam_image.convert("RGB")
+                st.image(gradcam_image,width=300)
+                st.caption('Heatmap of Scene ID XXX')
+  
+            
+            st.divider()
+        
+        st.download_button(
+            label="Download the whole results",
+            data=csv,
+            file_name='large_df.csv',
+            mime='text/csv',
+        )
