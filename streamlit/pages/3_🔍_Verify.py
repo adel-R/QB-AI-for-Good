@@ -12,20 +12,8 @@ import branca
 import torch
 from sklearn.metrics import accuracy_score, roc_auc_score
 from PIL import Image
-# import sys
-# # sys.path.append("../")  
-# # Get the absolute path of the current script
-# current_path = os.path.abspath(__file__)
-
-# # Get the parent directory of the current script
-# parent_directory = os.path.dirname(current_path)
-
-# # Append the parent directory to the Python path
-# sys.path.append(os.path.join(parent_directory, ".."))
-# print(os.path.join(parent_directory, ".."))
-
-# import util.inference
-# import util.modeling
+import util.inference
+import util.modeling
 
 
 # Layout
@@ -186,6 +174,12 @@ else:
 
     # Follow-up dataframe
     display_image = st.session_state.use_container_width
+    original_filename = parent_path+'/map/images/plume/20230102_methane_mixing_ratio_id_1465.tif'
+    original_image = Image.open(original_filename)
+    original_image = original_image.convert("RGB")
+    gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
+    gradcam_image = Image.open(gradcam_filename)
+    gradcam_image = gradcam_image.convert("RGB")
 
     if display_image:
         # columns
@@ -196,15 +190,9 @@ else:
 
         with col2:
             st.write('Original image')
-            original_filename = parent_path+'/map/images/plume/20230102_methane_mixing_ratio_id_1465.tif'
-            original_image = Image.open(original_filename)
-            original_image = original_image.convert("RGB")
             st.image(original_image,use_column_width=True) 
             st.divider()
             st.write('Heatmap')
-            gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
-            gradcam_image = Image.open(original_filename)
-            gradcam_image = gradcam_image.convert("RGB")
             st.image(gradcam_image,use_column_width=True) 
     else:
         st.dataframe(pd.DataFrame(gdf_filtered),height = 530 , use_container_width=True)
@@ -214,6 +202,7 @@ else:
     st.header("Inspect entries")
     # Add New entry for prediction
     zipfile = st.file_uploader('Upload satelite images and their metadata to identify potential plumes:', type=None, accept_multiple_files=False, help='The zip file must contain no subfolders. The metadata must contain complete and accurate information.')
+
 
     
     def predict(dataloader, model, device):
@@ -241,6 +230,7 @@ else:
     # results_idxs,results_preds = predict(dataloader,model,device)
     
     if zipfile !=None:
+
         if len(unzipped)>5:
             st.header('The first '+ str(min(len(unzipped),5)) +' results are displayed below')
         else:
@@ -268,7 +258,7 @@ else:
 
             with col4:
                 gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
-                gradcam_image = Image.open(original_filename)
+                gradcam_image = Image.open(gradcam_filename)
                 gradcam_image = gradcam_image.convert("RGB")
                 st.image(gradcam_image,width=300)
                 st.caption('Heatmap of Scene ID XXX')
@@ -276,9 +266,15 @@ else:
             
             st.divider()
         
-        st.download_button(
-            label="Download the whole results",
-            data=csv,
-            file_name='large_df.csv',
-            mime='text/csv',
-        )
+        d,col5,col6,col7,c = st.columns([3,1,1,1,3])
+        with col7:
+            st.download_button(
+                label="Download all results",
+                data=csv,
+                file_name='large_df.csv',
+                mime='text/csv',
+            )
+        with col5:
+            st.button('Validate Analysis')
+        with col6:
+            st.button('Request Verification')
