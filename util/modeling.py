@@ -324,7 +324,6 @@ Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(va
         # PREDICTING
         prob_matrix = np.stack(all_predictions).T
         if config["prediction_strategy"] == "max":
-            import pdb; pdb.set_trace()
             preds = np.where(np.max(prob_matrix, axis=1) > 0.8, np.max(prob_matrix, axis=1),
                              np.where(np.min(prob_matrix, axis=1) < 0.2, np.min(prob_matrix, axis=1),
                              np.mean(prob_matrix, axis=1)))
