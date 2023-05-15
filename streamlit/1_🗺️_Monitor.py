@@ -145,7 +145,20 @@ else:
                         'Total Emissions (kt CH4)',
                         'Total Emissions (kt CO2eq)',
                         'Carbon Credit cost ($)']
-    
+
+    ## Data
+    ## Display summary data
+    col1, col2, col3 = st.columns(3)
+    # total sites
+    total_site = gdf_filtered['Site'].nunique()
+    col1.metric("Total Sites", total_site)
+    # open sites
+    total_site = gdf_filtered[gdf_filtered['plume'] == 'yes']['Site'].nunique()
+    col2.metric("Sites with leaks", total_site)  # intitulé à revoir
+    total_site = gdf_filtered[gdf_filtered['plume'] == 'no']['Site'].nunique()
+    col3.metric("Sites without leaks", total_site)
+
+    ## MAP
     gdf_map = gdf_filtered[display_columns]
 
     map = gdf_map.explore("plume", location=(29.63, 80),tiles = "CartoDB positron", cmap = "RdYlGn_r",zoom_start=2)
