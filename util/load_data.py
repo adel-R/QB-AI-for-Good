@@ -143,8 +143,11 @@ class CustomDataset(Dataset):
             self.dir = None
             
     def __getitem__(self, index):
+        # update index as first row in metadata might not start at 0
+        index = self.metadata.index[index]
         # fetch image
         img_path = self.metadata.loc[index].path
+        
         if self.dir is not None:
             img_path = self.dir + img_path # needed to allow raytune to open images
         img = np.array(Image.open(img_path)) # shape (64, 64)
