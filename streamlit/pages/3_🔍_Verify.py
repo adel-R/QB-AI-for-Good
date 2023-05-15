@@ -9,6 +9,10 @@ import streamlit as st
 from streamlit_folium import st_folium
 import datetime
 import branca
+import torch
+from sklearn.metrics import accuracy_score, roc_auc_score
+from PIL import Image
+
 
 # Layout
 st.set_page_config(layout="wide")
@@ -33,15 +37,21 @@ st.markdown(f"""
     unsafe_allow_html=True,
 )
 
+# Get the base path of the Streamlit app
+base_path = os.path.abspath(__file__)
+
+#parent directory to get to the map folder
+parent_path = os.path.dirname(os.path.dirname(base_path))
+
+# Specify the relative path to the Shapefile within the subfolder
+file_path = parent_path + "/map/map.shp"
+
 # read map file
-gdf = gpd.read_file("map/map.shp") 
+gdf = gpd.read_file(file_path) 
 
 # Add datetime
 gdf['datetime'] =  pd.to_datetime(gdf['date'], format= "%Y%m%d")
 
-
-# Title and Side Bar for filters
-st.title("Monitor methane plumes")
 with st.sidebar:
     st.header('Enter your filters:')
     plumes = st.selectbox('Display', ('All','Only Plumes'))
@@ -116,40 +126,107 @@ with st.sidebar:
 if gdf_filtered.shape[0]<1:
     st.header('No Result found for this query')
 else:
-    gdf_filtered = gdf_filtered.rename(columns={'Concentrat':'Concentration Uncertainty (ppm m) ', 'Max Plume':'Max Plume Concentration (ppm m) '})
-    gdf_map = gdf_filtered[['id_coord', 'plume', 'city', 
-       'country', 'company', 'sector', 'geometry',
-       'Concentration Uncertainty (ppm m) ', 'Max Plume Concentration (ppm m) ', 'datetime']]
+    #Filter on the columns to be displayed
+    gdf_filtered = gdf_filtered.rename(columns={'Concentrat':'Concentration Uncertainty (ppm m)',
+                                                 'Max Plume':'Max Plume Concentration (ppm m)',
+                                                 'Emission': 'Estimated Emission rate (CH4 tonnes/hour)',
+                                                 'Duration':'Days since',
+                                                 'Total' : 'Total Emissions (kt CH4)' ,
+                                                 'CO2eq': 'Emissions (kt CO2eq)',
+                                                 'Site' : 'Site ID',
+                                                 'Credit' : 'Carbon Credit cost ($)' })
     
-    map = gdf_map.explore("plume", location=(29.63, 80),tiles = "CartoDB positron", cmap = "RdYlGn_r",zoom_start=2)
+    display_columns = ['Site ID',
+                        'city',
+                        'country',
+                        'company',
+                        'plume',
+                        'Status',
+                        'Days since',
+                        'Contact']
 
-    # Legend
-    legend_html = '''
-    {% macro html(this, kwargs) %}
-    <div style="
-        position: fixed; 
-        bottom: 7%;
-        right: 2%;
-        width: 100px;
-        height: 35px; 
-        z-index:9998;
-        font-size:80%;
-        background-color: #ffffff;
-        opacity: 0.7;
-        ">
 
-        <p style='margin:auto;display:flex;flex-direction: column;align-items: center;justify-content: center;'>
-            <div style='margin-left:15px'><span style="color:#a30021">&#9679;</span>&emsp;plume</div>
-            <div style='margin-left:15px'><span style="color:#006837">&#9679;</span>&emsp;no plume</div>
-        </p>
+    # Filter on display columns
+    gdf_filtered = gdf_filtered[display_columns]
+    
+    ### Prediction from model 
+    # Title and Side Bar for filters
+    st.title("Follow-up and Verification")
 
-    </div>
-    {% endmacro %}
-    '''
-    legend = branca.element.MacroElement()
-    legend._template = branca.element.Template(legend_html)
+    # # Boolean to resize the dataframe, stored as a session state variable
+    # st.checkbox("Use container width", value=False, key="use_container_width")
 
-    map.get_root().add_child(legend)
+    # # Follow-up dataframe
+    # display_image = st.session_state.use_container_width
 
-    #folium_map
-    folium_map = st_folium(map, width=1500, height=600)
+    # columns
+    col1, col2 = st.columns([6,1])
+
+    with col1:
+        st.dataframe(pd.DataFrame(gdf_filtered),height = 530 , use_container_width=True)
+
+    with col2:
+        st.write('Original image')
+        original_filename = parent_path+'/map/images/plume/20230102_methane_mixing_ratio_id_1465.tif'
+        original_image = Image.open(original_filename)
+        original_image = original_image.convert("RGB")
+        st.image(original_image,use_column_width=True) 
+        st.divider()
+        st.write('Heatmap')
+        gradcam_filename = parent_path+'/map/images/plume/20230102_methane_mixing_ratio_id_1465.tif'
+        gradcam_image = Image.open(original_filename)
+        gradcam_image = gradcam_image.convert("RGB")
+        st.image(gradcam_image,use_column_width=True)        
+
+    # Title and Side Bar for filters
+    st.header("Add new entries")
+    # Add New entry for prediction
+    zipfile = st.file_uploader('Upload satelite images to predict potential plumes:', type=None, accept_multiple_files=False, help='The zip file must contain no subfolders. The metadata must contain complete and accurate information.')
+
+    def predict(dataloader, model, criterion, device,test_set=True):
+        model.eval()
+        losses = []
+        idxs = torch.Tensor([])
+        lbls = torch.Tensor([])
+        preds = torch.Tensor([])
+        
+        if test_set:
+            for batch_idx, batch in enumerate(dataloader):
+                # decompose batch and move to device
+                idx_batch, img_batch, lbl_batch = batch
+                idxs = torch.cat((idxs, idx_batch))
+                lbls = torch.cat((lbls, lbl_batch))
+                lbl_batch = lbl_batch.type(torch.float32) # cast to long to be able to compute loss
+                img_batch, lbl_batch = img_batch.to(device), lbl_batch.to(device)
+                
+                # forward
+                logits = model(img_batch).float().squeeze(1)
+                loss = criterion(logits.to(device), lbl_batch)
+                
+                # logging
+                losses.append(loss.item())
+                preds = torch.cat((preds, torch.sigmoid(logits).cpu()))
+        else:
+            for batch_idx, batch in enumerate(dataloader):
+                # decompose batch and move to device
+                idx_batch, img_batch, lbl_batch = batch
+                idxs = torch.cat((idxs, idx_batch))
+                lbls = torch.cat((lbls, lbl_batch))
+                lbl_batch = lbl_batch.type(torch.float32) # cast to long to be able to compute loss
+                img_batch, lbl_batch = img_batch.to(device), lbl_batch.to(device)
+                
+                # forward
+                logits = model(img_batch).float().squeeze(1)
+                loss = criterion(logits.to(device), lbl_batch)
+                
+                # logging
+                losses.append(loss.item())
+                preds = torch.cat((preds, torch.sigmoid(logits).cpu()))
+                
+            # compute stats
+            acc = accuracy_score(lbls.detach().numpy(), (preds.detach().numpy() > 0.5))
+            auc = roc_auc_score(lbls.detach().numpy(), preds.detach().numpy())
+            loss_mean = np.mean(losses)
+            
+            return acc, auc, loss_mean
+

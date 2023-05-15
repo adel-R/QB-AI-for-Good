@@ -33,8 +33,14 @@ st.markdown(f"""
     unsafe_allow_html=True,
 )
 
+# Get the base path of the Streamlit app
+base_path = os.path.abspath(__file__)
+
+# Specify the relative path to the Shapefile within the subfolder
+file_path = os.path.dirname(base_path) + "/map/map.shp"
+
 # read map file
-gdf = gpd.read_file("map/map.shp") 
+gdf = gpd.read_file(file_path)
 
 # Add datetime
 gdf['datetime'] =  pd.to_datetime(gdf['date'], format= "%Y%m%d")
@@ -117,39 +123,42 @@ if gdf_filtered.shape[0]<1:
     st.header('No Result found for this query')
 else:
     #Filter on the columns to be displayed
-    gdf_filtered = gdf_filtered.rename(columns={'Concentrat':'Concentration Uncertainty (ppm m) ',
-                                                 'Max Plume':'Max Plume Concentration (ppm m) ',
-                                                 'Emission': 'Estimated Emission rate (CH4 tonnes/hour) ',
-                                                 'Duration':'Estimated Duration (hours) ',
-                                                 'Total' : 'Total Emissions (kt CH4) ' ,
-                                                 'CO2eq': 'Total Emissions (kt CO2eq)' })
+    gdf_filtered = gdf_filtered.rename(columns={'Concentrat':'Concentration Uncertainty (ppm m)',
+                                                 'Max Plume':'Max Plume Concentration (ppm m)',
+                                                 'Emission': 'Estimated Emission rate (CH4 tonnes/hour)',
+                                                 'Duration':'Estimated Duration (hours)',
+                                                 'Total' : 'Total Emissions (kt CH4)' ,
+                                                 'CO2eq': 'Total Emissions (kt CO2eq)',
+                                                 'Credit' : 'Carbon Credit cost ($)' })
     display_columns = ['id_coord',
                         'plume',
-                        'city', 
+                        'city',
                         'country',
                         'company',
                         'sector',
                         'geometry',
-                        'Concentration Uncertainty (ppm m) ',
-                        'Max Plume Concentration (ppm m) ',
+                        'Concentration Uncertainty (ppm m)',
+                        'Max Plume Concentration (ppm m)',
                         'datetime',
-                        'Estimated Emission rate (CH4 tonnes/hour) ',
-                        'Estimated Duration (hours) ',
-                        'Total Emissions (kt CH4) ',
-                        'Total Emissions (kt CO2eq)']
-    gdf_map = gdf_filtered[display_columns]
+                        'Estimated Emission rate (CH4 tonnes/hour)',
+                        'Estimated Duration (hours)',
+                        'Total Emissions (kt CH4)',
+                        'Total Emissions (kt CO2eq)',
+                        'Carbon Credit cost ($)']
     
+    gdf_map = gdf_filtered[display_columns]
+
     map = gdf_map.explore("plume", location=(29.63, 80),tiles = "CartoDB positron", cmap = "RdYlGn_r",zoom_start=2)
 
     # Legend
     legend_html = '''
     {% macro html(this, kwargs) %}
     <div style="
-        position: fixed; 
+        position: fixed;
         bottom: 7%;
         right: 2%;
         width: 100px;
-        height: 35px; 
+        height: 35px;
         z-index:9998;
         font-size:80%;
         background-color: #ffffff;
@@ -157,8 +166,8 @@ else:
         ">
 
         <p style='margin:auto;display:flex;flex-direction: column;align-items: center;justify-content: center;'>
-            <div style='margin-left:15px'><span style="color:#a30021">&#9679;</span>&emsp;plume</div>
-            <div style='margin-left:15px'><span style="color:#006837">&#9679;</span>&emsp;no plume</div>
+            <div style='margin-left:15px;color:black'><span style="color:#a30021">&#9679;</span>&emsp;plume</div>
+            <div style='margin-left:15px;color:black'><span style="color:#006837">&#9679;</span>&emsp;no plume</div>
         </p>
 
     </div>
