@@ -161,3 +161,4 @@ cython_debug/
 
 # raytune trials
 ray_results/
+bin/
