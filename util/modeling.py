@@ -310,12 +310,7 @@ Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(va
                     torch.save(model.state_dict(), path)
                     best_models_indicies[k] = epoch  # needed as we are reporting multiple metrics
                     best_models_paths[k] = path  # path to best model in kth fold
-    
-    if ray:
-        session.report({"trn_loss": get_metric_from_matrix(trn_losses, best_models_indicies), "val_loss": get_metric_from_matrix(val_losses, best_models_indicies),
-                        "trn_acc": get_metric_from_matrix(trn_accs, best_models_indicies), "val_acc": get_metric_from_matrix(val_accs, best_models_indicies),
-                        "trn_auc": get_metric_from_matrix(trn_aucs, best_models_indicies), "val_auc": get_metric_from_matrix(val_aucs, best_models_indicies)})
-    
+
     if len(tstloader) > 0:
         all_predictions = [] #probabilities for each model
         all_losses = []
@@ -329,7 +324,10 @@ Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(va
         # PREDICTING
         prob_matrix = np.stack(all_predictions).T
         if config["prediction_strategy"] == "max":
-            preds = np.max(prob_matrix, axis=1)
+            import pdb; pdb.set_trace()
+            preds = np.where(np.max(prob_matrix, axis=1) > 0.8, np.max(prob_matrix, axis=1),
+                             np.where(np.min(prob_matrix, axis=1) < 0.2, np.min(prob_matrix, axis=1),
+                             np.mean(prob_matrix, axis=1)))
         elif config["prediction_strategy"] == "avg":
             preds = np.mean(prob_matrix, axis=1)
         else:
@@ -337,6 +335,12 @@ Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(va
         test_auc = roc_auc_score(lbls, preds)
 
         print(f"Test Performance -> Loss: {round(np.mean(tst_loss), 2)}, AUC: {round(test_auc, 3)}")
+
+    if ray:
+        session.report({"trn_loss": get_metric_from_matrix(trn_losses, best_models_indicies), "val_loss": get_metric_from_matrix(val_losses, best_models_indicies),
+                        "trn_acc": get_metric_from_matrix(trn_accs, best_models_indicies), "val_acc": get_metric_from_matrix(val_accs, best_models_indicies),
+                        "trn_auc": get_metric_from_matrix(trn_aucs, best_models_indicies), "val_auc": get_metric_from_matrix(val_aucs, best_models_indicies),
+                        "test_auc": test_auc})
 
     if return_obj:
         return model, trn_losses, val_losses, trn_accs, val_accs, trn_aucs, val_aucs
