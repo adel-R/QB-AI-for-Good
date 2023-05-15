@@ -49,7 +49,7 @@ def init_data(config):
     # fetch metadata
     trnval_metadata = loadData.load_metadata(config["dir"] + "\\images\\metadata.csv", set = "train")
     if config["official_test"]:
-        tst_metadata    = loadData.load_metadata(config["dir"] + "\\images\\metadata.csv", set = "test")
+        tst_metadata = loadData.load_metadata(config["dir"] + "\\images\\metadata.csv", set = "test")
 
     # perform train val test split
     if config["official_test"]:
@@ -306,7 +306,7 @@ Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(va
             if config["save"]:
                 if (val_auc+trn_auc)/2 >= performance_score:
                     performance_score = (val_auc+trn_auc)/2  # we are penalizing difference between val and train
-                    path = f"best_{config['model']}_fold_{k}.pt"
+                    path = f"best_{config['model']}_fold_{k}.pt" if ray else f"bin/best_{config['model']}_fold_{k}.pt"
                     torch.save(model.state_dict(), path)
                     best_models_indicies[k] = epoch  # needed as we are reporting multiple metrics
                     best_models_paths[k] = path  # path to best model in kth fold
@@ -333,7 +333,7 @@ Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(va
             assert False, "Specify correct prediction strategy (avg, max)"
         test_auc = roc_auc_score(lbls, preds)
 
-        print(f"Test Performance -> Loss: {round(np.mean(tst_loss), 2)}, AUC: {round(test_auc, 3)}")
+        print(f"Test Performance -> Loss: {round(np.mean(tst_loss), 2)}, AUC: {round(test_auc, 3)}") if verbose else None
 
     if ray:
         session.report({"trn_loss": get_metric_from_matrix(trn_losses, best_models_indicies), "val_loss": get_metric_from_matrix(val_losses, best_models_indicies),
