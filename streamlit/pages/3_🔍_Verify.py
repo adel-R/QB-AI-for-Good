@@ -12,6 +12,20 @@ import branca
 import torch
 from sklearn.metrics import accuracy_score, roc_auc_score
 from PIL import Image
+# import sys
+# # sys.path.append("../")  
+# # Get the absolute path of the current script
+# current_path = os.path.abspath(__file__)
+
+# # Get the parent directory of the current script
+# parent_directory = os.path.dirname(current_path)
+
+# # Append the parent directory to the Python path
+# sys.path.append(os.path.join(parent_directory, ".."))
+# print(os.path.join(parent_directory, ".."))
+
+# import util.inference
+# import util.modeling
 
 
 # Layout
@@ -33,6 +47,11 @@ st.markdown(f"""
         .css-1oe5cao{{
             padding-top: 2rem;
         }}
+
+        .stCheckbox{{
+            opacity: 0;
+        }}
+
     </style>""",
     unsafe_allow_html=True,
 )
@@ -56,6 +75,7 @@ with st.sidebar:
     st.header('Enter your filters:')
     plumes = st.selectbox('Display', ('All','Only Plumes'))
     period = st.date_input( "Period of Interest", (datetime.date(2023, 1, 1),datetime.date(2023, 12, 31) ))
+    status = st.multiselect('Status', ['Ongoing','Closed','To Be Verified'])
     sectors = st.multiselect('Sectors', sorted(list(gdf['sector'].unique())))
     companies = st.multiselect('Companies', sorted(list(gdf['company'].unique())))
     countries = st.multiselect('Countries', sorted(list(gdf['country'].unique())))
@@ -66,6 +86,10 @@ gdf_filtered = gdf.copy()
 # Filter on the display
 if plumes=='Only Plumes':
     gdf_filtered = gdf_filtered[gdf_filtered['plume']=='yes']
+
+    # Filter on the status
+    if status !=[]:
+        gdf_filtered = gdf_filtered[gdf_filtered['Status'].isin(status)]
 
     # Filter on the sectors
     if sectors !=[]:
@@ -87,6 +111,10 @@ if plumes=='Only Plumes':
     gdf_filtered["datetime"] = gdf_filtered["datetime"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
 else:
+    # Filter on the status
+    if status !=[]:
+        gdf_filtered = gdf_filtered[gdf_filtered['Status'].isin(status)]
+    
     # Filter on the sectors
     if sectors !=[]:
         gdf_filtered = gdf_filtered[gdf_filtered['sector'].isin(sectors)]
@@ -153,30 +181,34 @@ else:
     # Title and Side Bar for filters
     st.title("Follow-up and Verification")
 
-    # # Boolean to resize the dataframe, stored as a session state variable
-    # st.checkbox("Use container width", value=False, key="use_container_width")
+    # Boolean to resize the dataframe, stored as a session state variable
+    st.checkbox("Use container width", value=False, key="use_container_width")
 
-    # # Follow-up dataframe
-    # display_image = st.session_state.use_container_width
+    # Follow-up dataframe
+    display_image = st.session_state.use_container_width
 
-    # columns
-    col1, col2 = st.columns([6,1])
+    if display_image:
+        # columns
+        col1, col2 = st.columns([6,1])
 
-    with col1:
+        with col1:
+            st.dataframe(pd.DataFrame(gdf_filtered),height = 530 , use_container_width=True)
+
+        with col2:
+            st.write('Original image')
+            original_filename = parent_path+'/map/images/plume/20230102_methane_mixing_ratio_id_1465.tif'
+            original_image = Image.open(original_filename)
+            original_image = original_image.convert("RGB")
+            st.image(original_image,use_column_width=True) 
+            st.divider()
+            st.write('Heatmap')
+            gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
+            gradcam_image = Image.open(original_filename)
+            gradcam_image = gradcam_image.convert("RGB")
+            st.image(gradcam_image,use_column_width=True) 
+    else:
         st.dataframe(pd.DataFrame(gdf_filtered),height = 530 , use_container_width=True)
 
-    with col2:
-        st.write('Original image')
-        original_filename = parent_path+'/map/images/plume/20230102_methane_mixing_ratio_id_1465.tif'
-        original_image = Image.open(original_filename)
-        original_image = original_image.convert("RGB")
-        st.image(original_image,use_column_width=True) 
-        st.divider()
-        st.write('Heatmap')
-        gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
-        gradcam_image = Image.open(original_filename)
-        gradcam_image = gradcam_image.convert("RGB")
-        st.image(gradcam_image,use_column_width=True)        
 
     # Title and Side Bar for filters
     st.header("Inspect entries")
