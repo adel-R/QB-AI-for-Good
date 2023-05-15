@@ -120,10 +120,7 @@ def stratified_split(df, k, test_size=None):
         val_id_coords = folds[i]['val']['id_coord'].unique()
         folds[i]['train'] = pd.concat([folds[i]['train'], df[~df['id_coord'].isin(val_id_coords)]])
 
-    if test_size is not None:
-        return folds, test_df
-    else:
-        return folds
+    return folds, test_df
 
 
 class CustomDataset(Dataset):
