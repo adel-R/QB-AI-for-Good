@@ -278,7 +278,7 @@ else:
             
             st.divider()
         
-        d,col5,col6,col7,c = st.columns([4,1,1,1,4])
+        d,col5,col6,col7,c = st.columns([3,1,1,1,3])
         with col7:
             st.download_button(
                 label="Download all results",
