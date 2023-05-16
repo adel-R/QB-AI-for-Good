@@ -129,7 +129,7 @@ def init_training(config, use_model = None):
     
     if use_model is None:
 
-        input_size = 512 if (config["model"] == "ResNet18") or (config["model"] == "ResNet34") else 1024 if (config["model"] == "densenet121") else 2208 if (config["model"] == "densenet161") else None
+        input_size = 512 if (config["model"] == "ResNet18") or (config["model"] == "ResNet34") else 1024 if (config["model"] == "densenet121") else 2208 if (config["model"] == "densenet161") else 10
         if config["classifier"] == "shallow":
             fc = nn.Linear(input_size, 1) # replace last layer with own classifier
         elif config["classifier"] == "deep":
@@ -371,6 +371,8 @@ Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(va
         test_auc = roc_auc_score(lbls, preds)
 
         print(f"Test Performance -> Loss: {round(np.mean(tst_loss), 2)}, AUC: {round(test_auc, 3)}") if verbose else None
+    else:
+        test_auc = 0
 
     if ray:
         session.report({"trn_loss": get_metric_from_matrix(trn_losses, best_models_indicies), "val_loss": get_metric_from_matrix(val_losses, best_models_indicies),
