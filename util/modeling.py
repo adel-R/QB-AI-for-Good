@@ -101,32 +101,63 @@ def freeze_weights(model):
         param.requires_grad = False
 
 
+def create_sequential_model(width, depth, input_size=512, output_size=1):
+    layers = []
+
+    # Input layer
+    layers.append(nn.Linear(input_size, width))
+    layers.append(nn.ReLU())
+
+    # Hidden layers
+    for _ in range(depth - 2):
+        layers.append(nn.Linear(width, width))
+        layers.append(nn.ReLU())
+
+    # Output layer
+    layers.append(nn.Linear(width, output_size))
+
+    model = nn.Sequential(*layers)
+    return model
+
+
 def init_training(config, use_model = None):
     # how many epochs we want to train for (at maximum)
     max_epochs = int(config["max_epochs"])
     
     # model initialisation
-    weights = None
     num_classes = 1
     
     if use_model is None:
-        if config["pretrained"]:
-            weights = "DEFAULT"
-            num_classes = 1000 # pre-trained weights come from ImageNet (replace last layers with own classifier)
+
+        input_size = 512 if (config["model"] == "ResNet18") or (config["model"] == "ResNet34") else 1024 if (config["model"] == "densenet121") else 2208 if (config["model"] == "densenet161") else None
+        if config["classifier"] == "shallow":
+            fc = nn.Linear(input_size, 1) # replace last layer with own classifier
+        elif config["classifier"] == "deep":
+            fc = create_sequential_model(width=config["width"], depth=config["depth"], input_size = input_size)
 
         if config["model"] == "ResNet18":
-            model = torchvision.models.resnet18(weights = weights, progress = False, num_classes = num_classes)
-            if weights:
-                freeze_weights(model)
-                model.fc = nn.Linear(512, 1) # replace last layer with own classifier
+            model = torchvision.models.resnet18(progress = False, num_classes = num_classes)
+            model.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False) # change 1st conv layer from 3 channel to 1 channel
+            model.fc = fc
         elif config["model"] == "ResNet34":
-            model = torchvision.models.resnet34(weights = weights, progress = False, num_classes = num_classes)
-            if weights:
-                freeze_weights(model)
-                model.fc = nn.Linear(512, 1) # replace last layer with own classifier
-
-        # change 1st conv layer from 3 channel to 1 channel (ResNets were pretrained using 3channel RGB images)
-        model.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+            model = torchvision.models.resnet34(progress = False, num_classes = num_classes)
+            model.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False) # change 1st conv layer from 3 channel to 1 channel
+            model.fc = fc
+        elif config["model"] == "mobilenet_v3_small":
+            model = torchvision.models.mobilenet_v3_small(progress = False, num_classes = num_classes)
+            model.features[0][0] = nn.Conv2d(1, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False) # change 1st conv layer from 3 channel to 1 channel
+        elif config["model"] == "mobilenet_v3_large":
+            model = torchvision.models.mobilenet_v3_large(progress = False, num_classes = num_classes)
+            model.features[0][0] = nn.Conv2d(1, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False) # change 1st conv layer from 3 channel to 1 channel
+        elif config["model"] == "densenet121":
+            model = torchvision.models.densenet121(progress = False, num_classes = num_classes)
+            model.features.conv0 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False) # change 1st conv layer from 3 channel to 1 channel
+            model.classifier = fc
+        elif config["model"] == "densenet161":
+            model = torchvision.models.densenet161(progress = False, num_classes = num_classes)
+            model.features.conv0 = nn.Conv2d(1, 96, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False) # change 1st conv layer from 3 channel to 1 channel
+            model.classifier = fc
+        # squeezenet1_1 and efficientnet_v2_l not learning
 
     else:
         model = use_model
@@ -135,7 +166,12 @@ def init_training(config, use_model = None):
     device, model = get_device(model)
 
     # initialise optimizer
-    optimizer = torch.optim.SGD(params = model.parameters(), lr = config["lr"], momentum = config["mom"], weight_decay = config["wd"])
+    if config["optim_name"] == "SGD":
+        optimizer = torch.optim.SGD(params = model.parameters(), lr = config["lr"], momentum = config["mom"], weight_decay = config["wd"])
+    elif config["optim_name"] == "AdamW":
+        optimizer = torch.optim.AdamW(params = model.parameters(), lr = config["lr"], weight_decay = config["wd"])
+    elif config["optim_name"] == "RMS":
+        optimizer = torch.optim.AdamW(params = model.parameters(), lr = config["lr"], weight_decay = config["wd"])
 
     # define learning rate scheduler
     scheduler = None
@@ -304,8 +340,9 @@ def train_evaluate_model(config, trnloaders, valloaders, tstloader, verbose = Tr
 Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(val_auc, 3)}")
             
             if config["save"]:
-                if (val_auc+trn_auc)/2 >= performance_score:
-                    performance_score = (val_auc+trn_auc)/2  # we are penalizing difference between val and train
+                cur_perfomance_score = val_auc if val_auc <= trn_auc else (val_auc+trn_auc)/2
+                if cur_perfomance_score >= performance_score:
+                    performance_score = cur_perfomance_score  # we are penalizing difference between val and train
                     path = f"best_{config['model']}_fold_{k}.pt" if ray else f"bin/best_{config['model']}_fold_{k}.pt"
                     torch.save(model.state_dict(), path)
                     best_models_indicies[k] = epoch  # needed as we are reporting multiple metrics
