@@ -79,6 +79,10 @@ st.markdown(f"""
             color:#053E57;
         }}
 
+        [data-testid=stSidebar] button [data-testid=stMarkdownContainer] {{
+            color:#053E57;
+        }}
+
         .st-ei {{
             background-color:#053E57;
         }}

@@ -91,6 +91,10 @@ st.markdown(f"""
             color:#053E57;
         }}
 
+        [data-testid=stSidebar] button [data-testid=stMarkdownContainer] {{
+            color:#053E57;
+        }}
+
         .css-1oe5cao{{
             padding-top: 2rem;
         }}
