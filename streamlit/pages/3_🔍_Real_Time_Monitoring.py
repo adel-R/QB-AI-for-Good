@@ -16,6 +16,8 @@ import util.inference as inference
 import util.modeling as modeling
 import zipfile
 import shutil
+import glob
+import util.GradCam as GradCam
 
 # Layout
 st.set_page_config(layout="wide")
@@ -213,10 +215,90 @@ else:
     # getting to correct device
     device, model = modeling.get_device(model)
     
-    # Check if file is tif file
-    def is_tiff_file(file_path):
-        file_extension = os.path.splitext(file_path)[1].lower()
-        return file_extension == ".tif" or file_extension == ".tiff"
+    #Cache data
+    @st.cache_data
+    # Check if metadata is valid (and concatenate multiple files if any)
+    def metadata(folder_path, required_columns=['date','id_coord','lat','lon','coord_x','coord_y','image_name']):    
+        # Get a list of all CSV files in the folder
+        csv_files = glob.glob(os.path.join(folder_path, "*.csv"))
+
+        results = []
+        # Check if at least one CSV file exists in the folder
+        if csv_files:
+            # Iterate over each CSV file
+            for csv_file in csv_files:
+                # Read the CSV file
+                df = pd.read_csv(csv_file)
+                
+                # Check if the required columns are present in the CSV file
+                if all(column in df.columns for column in required_columns):
+                    results.append(df.copy())
+            
+            # Concatenate valid metadata files
+            concatenated_df = pd.concat(results, ignore_index=True)
+
+            return concatenated_df
+    
+        else:
+            return False
+
+    #Cache data
+    @st.cache_data
+    def display_metadata(metadata_img,prob,lbl,lbl_h,img_raw, heat_map):
+        col3,col4 = st.columns(2)
+        
+        with col3:
+            st.subheader('Predictions results for site ID: '+ str(metadata_img['id_coord'][0].values))
+            date_obj = datetime.strptime(metadata_img['date'][0].values, '%Y%m%d')
+            formatted_date = date_obj.strftime('%d/%m/%Y')
+            st.write('Date taken: '+ formatted_date)
+            # st.write('Latitude: '+str(metadata_img['lat'][0].values))
+            # st.write('Longitude: '+str(metadata_img['lon'][0].values))
+            st.write('City: '+str(metadata_img['city'][0].values))
+            st.write('Country: '+str(metadata_img['country'][0].values))
+            st.write('File name: '+str(metadata_img['image_name'][0].values))
+            st.write('Confidence probability (%): '+str(round(prob*100,2))+' %')
+            if lbl>0:
+                st.subheader(':warning: :red[A plume has been identified]')
+            else:
+                st.subheader(':heavy_check_mark: :green[No plume has been identified]')
+
+
+        with col4:
+            # gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
+            # gradcam_image = Image.open(gradcam_filename)
+            # gradcam_image = gradcam_image.convert("RGB")
+            # st.image(gradcam_image,width=300)
+            GradCam.visualize_heatmap(img_raw, heat_map, lbl_h)
+            st.caption('Heatmap of image '+str(metadata_img['image_name'][0].values))
+
+        
+        st.divider()
+    
+    #Cache data
+    @st.cache_data
+    def display_no_metadata(path_to_img,prob,lbl,img_raw, heat_map, lbl_h):
+        col3,col4 = st.columns(2)
+        
+        with col3:
+            st.subheader('Predictions results for image: '+ str(os.path.basename(path_to_img)))
+            st.write('Confidence probability (%): '+str(round(prob*100,2))+' %')
+            if lbl>0:
+                st.subheader(':warning: :red[A plume has been identified]')
+            else:
+                st.subheader(':heavy_check_mark: :green[No plume has been identified]')
+
+
+        with col4:
+            # gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
+            # gradcam_image = Image.open(gradcam_filename)
+            # gradcam_image = gradcam_image.convert("RGB")
+            # st.image(gradcam_image,width=300)
+            GradCam.visualize_heatmap(img_raw, heat_map, lbl_h)
+            st.caption('Heatmap of image '+ str(os.path.basename(path_to_img)))
+
+        
+        st.divider()
 
     # When zip file is loaded
     if zip_file !=None:
@@ -237,73 +319,97 @@ else:
             with open(zip_file_path, "wb") as file:
                 file.write(zip_file.getbuffer())
         
-        
+        # Fetch image list 
+        image_list_paths = glob.glob(output_folder + "/*.tiff") + glob.glob(output_folder + "/*.tif")
 
-            # path_to_img = 'images/plume/20230223_methane_mixing_ratio_id_8446.tif'
-
-            # # Prediction 
-            # prob, lbl = inference.infer(model=model,path_to_img=path_to_img,device=device)
-            # print(f"Probability of plume: {prob}")
-            # print(f"Predicted label: {lbl}")
-        
-
-        # if len(unzipped)>5:
-        #     st.header('The first '+ str(min(len(unzipped),5)) +' results are displayed below')
-        # else:
-        #     st.header('Results are displayed below')
-
-        # for i in range(min(len(unzipped),5)):
-        #     col3,col4 = st.columns(2)
-            
-        #     with col3:
-        #         st.subheader('Predictions results for scene ID :'+unzipped)
-        #         st.write('Scene ID: ')
-        #         st.write('Date taken: 2222222')
-        #         st.write('Latitude: 45')
-        #         st.write('Longitude:30')
-        #         st.write('Site ID:')
-        #         st.write('City:')
-        #         st.write('Country:')
-        #         st.write('Original Image name: FOO.tif')
-        #         st.write('Heatmap Image name: FOO_heatmap.tif')
-        #         if i>0:
-        #             st.subheader(':warning: :red[A plume has been identified]')
-        #         else:
-        #             st.subheader(':heavy_check_mark: :green[No plume has been identified]')
-
-
-        #     with col4:
-        #         gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
-        #         gradcam_image = Image.open(gradcam_filename)
-        #         gradcam_image = gradcam_image.convert("RGB")
-        #         st.image(gradcam_image,width=300)
-        #         st.caption('Heatmap of Scene ID XXX')
-  
-            
-        #     st.divider()
-        
-        d,col5,col6,col7,c = st.columns([3,1,1,1,3])
-        with col7:
-            st.download_button(
-                label="Download all results",
-                data=csv,
-                file_name='large_df.csv',
-                mime='text/csv',
-            )
-        with col5:
-            val_button = st.button('Validate Analysis')
-        with col6:
-            verif_button = st.button('Request Verification')
-
-        # Function to remove the folder and its contents
-        def remove_folder(folder_path):
-            if os.path.exists(folder_path):
-                shutil.rmtree(folder_path)
-                st.success(f"Folder '{folder_path}' removed successfully.")
+        if len(image_list_paths)>0:
+            if len(image_list_paths)>5:
+                st.header('The first '+ str(min(len(image_list_paths),5)) +' results are displayed below')
             else:
-                st.warning(f"Folder '{folder_path}' does not exist.")
+                st.header('Results are displayed below')
 
-        # Check if the button is clicked
-        if val_button:
-            remove_folder(output_folder)
-            val_button=None
+            metadata_df = metadata(output_folder)
+
+            # Fetch country and city
+            if metadata_df != False:
+                # Use reverse_geocoder to get the city and country information
+                coords = list(zip(metadata_df["lat"], metadata_df["lon"]))
+                coord_results = rg.search(coords)
+
+                # Extract city and country and add to the dataframe
+                metadata_df["city"] = [r["name"] for r in coord_results]
+                metadata_df["country_code"] = [r["cc"] for r in coord_results]
+
+                # Convert country codes to country names
+                def get_country_name(country_code):
+                    try:
+                        return pycountry.countries.get(alpha_2=country_code).name
+                    except AttributeError:
+                        return None
+                    
+                metadata_df["country"] = metadata_df["country_code"].apply(get_country_name)
+
+            result_pred_csv = []
+            for i in range(len(image_list_paths)):
+
+                # Fetch an image path
+                path_to_img = image_list_paths[i]
+
+                # Prediction 
+                prob, lbl = inference.infer(model=model,path_to_img=path_to_img,device=device)
+
+                # GradCam
+                heat_map, img_raw, lbl_h = GradCam.get_heatmap(model=model, path_to_img=path_to_img, device=device, against_label=0)
+
+                # metadata valid format
+                if metadata_df != False:
+                    # Fetch metadata
+                    metadata_img = metadata_df[metadata_df['image_name']==os.path.basename(path_to_img)].fillna('-').copy()
+                    if metadata_img.shape[0]>0:
+                        metadata_img['plume predicted'] = lbl
+                        metadata_img['probability'] = prob
+                        result_pred_csv.append(metadata_img.copy())
+                        if i<5:
+                            display_metadata(metadata_img,prob,lbl,lbl_h,img_raw, heat_map)
+                    else:
+                        pred_df = pd.DataFrame([os.path.basename(path_to_img),lbl,prob], columns=['image_name','plume predicted','probability'])
+                        result_pred_csv.append(pred_df.copy())
+                        if i<5:
+                            display_no_metadata(path_to_img,prob,lbl,img_raw, heat_map, lbl_h)
+                else:
+                    pred_df = pd.DataFrame([os.path.basename(path_to_img),lbl,prob], columns=['image_name','plume predicted','probability'])
+                    result_pred_csv.append(pred_df.copy())
+                    if i <5:
+                        display_no_metadata(path_to_img,prob,lbl,img_raw, heat_map, lbl_h)
+
+            d,col5,col6,col7,c = st.columns([3,1,1,1,3])
+            final_predictions = convert_df(pd.concat(result_pred_csv))
+            with col7:
+                st.download_button(
+                    label="Download all results",
+                    data=final_predictions,
+                    file_name='predictions.csv',
+                    mime='text/csv',
+                )
+            with col5:
+                val_button = st.button('Validate Analysis')
+            with col6:
+                verif_button = st.button('Request Verification')
+
+            # Function to remove the folder and its contents
+            def remove_folder(folder_path):
+                if os.path.exists(folder_path):
+                    shutil.rmtree(folder_path)
+                    st.success(f"Folder '{folder_path}' removed successfully.")
+                else:
+                    st.warning(f"Folder '{folder_path}' does not exist.")
+
+            # Check if the button is clicked
+            if val_button:
+                remove_folder(output_folder)
+                val_button=None
+        
+        else:
+            st.warning('Invalid image file format. The file must be images with .tif or .tiff extensions')
+
+            
