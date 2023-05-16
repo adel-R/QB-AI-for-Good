@@ -408,8 +408,11 @@ else:
 
     grouped_df = grouped_df.sort_values('Total Emissions (kt CH4)', ascending=False)
 
-    fig = go.Figure(
-        [go.Bar(x=grouped_df['sector'], y=grouped_df['Total Emissions (kt CH4)'], marker_color=graph_color)])
+    colors = px.colors.sequential.RdBu
+
+    fig = go.Figure(data=[go.Pie(labels=grouped_df['sector'],
+                    values=grouped_df['Total Emissions (kt CH4)'], marker=dict(colors=colors))])
+
 
     fig.update_layout(title='Total Emissions (kt CH4) per Sector',
                     xaxis_title='Sector',
@@ -430,12 +433,12 @@ else:
     grouped_df = grouped_df.sort_values(
         'Total Emissions (kt CH4)', ascending=True)
 
-    grouped_df = grouped_df.tail(10)
+    #grouped_df = grouped_df.tail(10)
 
     fig = go.Figure(
         [go.Bar(x=grouped_df['Total Emissions (kt CH4)'], y=grouped_df['company'], marker_color=graph_color, orientation='h')])
 
-    fig.update_layout(title='Top 10 Companies in producing emissions (kt CH4)',
+    fig.update_layout(title='Emissions (kt CH4) per company',
                     yaxis_title='Companies',
                     xaxis_title='Emissions (kt CH4)')
 
