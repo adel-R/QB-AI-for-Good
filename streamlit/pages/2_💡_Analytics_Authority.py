@@ -90,6 +90,10 @@ st.markdown(f"""
           color:#053E57
         }}
 
+        [data-testid=stMarkdownContainer] h2 span{{
+                    color:#053E57;
+                }}
+
         .css-1oe5cao{{
             padding-top: 2rem;
         }}
