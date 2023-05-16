@@ -76,10 +76,14 @@ def get_heatmap(model, path_to_img, device, model_type="ResNet", layer_number=4,
     else:
         lbl = against_label
 
+    # zeroing gradient
+    model.zero_grad()
+
     # creating GradCam model
     gcmodel = GradCamModel(model=model, layer_number=layer_number, model_type=model_type)
 
     # get activations and output of model
+    gcmodel.eval()
     out, acts = gcmodel(img_tensor)
 
     # detach activations
