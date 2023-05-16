@@ -261,12 +261,12 @@ else:
 
     # Follow-up dataframe
     display_image = st.session_state.use_container_width
-    original_filename = parent_path+'/map/images/plume/20230102_methane_mixing_ratio_id_1465.tif'
+    original_filename = parent_path+'/logo/example_original.png'
     original_image = Image.open(original_filename)
-    original_image = original_image.convert("RGB")
-    gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
+    # original_image = original_image.convert("RGB")
+    gradcam_filename = parent_path+'/logo/example_gradcam.png'
     gradcam_image = Image.open(gradcam_filename)
-    gradcam_image = gradcam_image.convert("RGB")
+    # gradcam_image = gradcam_image.convert("RGB")
 
     if display_image:
         # columns
