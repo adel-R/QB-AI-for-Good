@@ -26,8 +26,65 @@ st.markdown(f"""
             margin-top: {margin}rem;
         }}
 
+        [data-testid=stDecoration] {{
+            background-image: linear-gradient(90deg, #053E57, #FFFFFF);
+        }}
+
         .css-1oe5cao{{
             padding-top: 2rem;
+        }}
+
+        [data-testid=stSidebarNav] .css-wjbhl0 {{
+            padding-top: 2rem;
+        }}
+
+        [data-testid=stSidebar] {{
+            background-color: #053E57;
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] .block-container {{
+            margin-top: 0rem;
+        }}
+
+        [data-testid=stMarkdownContainer] h2{{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] [data-testid=stMarkdownContainer] {{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] [data-testid=stImage] {{
+            text-align: center;
+            padding-top: 2rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }}
+
+        [data-testid=stSidebarNav] a span {{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stMarkdownContainer] h1{{
+            color:#053E57;
+        }}
+
+        [data-testid=metric-container] {{
+            color:#053E57;
+        }}
+
+        [data-testid=stMarkdownContainer] {{
+            color:#053E57;
+        }}
+
+        .st-ei {{
+            background-color:#053E57;
+        }}
+
+        button [data-testid=stMarkdownContainer] p{{
+          color:#053E57
         }}
     </style>""",
     unsafe_allow_html=True,
@@ -114,6 +171,8 @@ with st.sidebar:
         file_name='monitoring_export.csv',
         mime='text/csv',
     )
+    st.sidebar.image("/Users/clarabesnard/Desktop/Desktop - MacBook Air de Clara (2)/DSBA 2/QB/QB-AI-for-Good/streamlit/pages/upload/logo.png",
+                     width=150)
 
 
 ## Data

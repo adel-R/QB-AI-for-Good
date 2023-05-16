@@ -20,6 +20,7 @@ st.set_page_config(layout="wide")
 margin = 0
 padding = 2
 
+graph_color = '#053E57'
 # Layout
 st.markdown(f"""
     <style>
@@ -31,12 +32,66 @@ st.markdown(f"""
             margin: {margin}rem;
         }}
 
-        .css-1oe5cao{{
+        [data-testid=stDecoration] {{
+            background-image: linear-gradient(90deg, #053E57, #FFFFFF);
+        }}
+
+        [data-testid=stSidebarNav] .css-wjbhl0 {{
             padding-top: 2rem;
         }}
+
+        [data-testid=stSidebar] {{
+            background-color: #053E57;
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stMarkdownContainer] h2{{
+            color:#FFFFFF;
+        }}
+
+
+        [data-testid=stSidebar] [data-testid=stMarkdownContainer] {{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] [data-testid=stImage] {{
+            text-align: center;
+            padding-top: 2rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }}
+
+        [data-testid=stSidebar] .block-container {{
+            margin-top: 0rem;
+        }}
+
+        [data-testid=stSidebarNav] a span {{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stMarkdownContainer] h1{{
+            color:#053E57;
+        }}
+
+        [data-testid=metric-container] {{
+            color:#053E57;
+        }}
+
+        [data-testid=stMarkdownContainer] {{
+            color:#053E57;
+        }}
+
+        [data-baseweb=tab-highlight] {{
+            background-color:#053E57;
+        }}
+
+        button [data-testid=stMarkdownContainer] .css-1offfwpp{{
+          color:#053E57
+        }}
     </style>""",
-    unsafe_allow_html=True,
-)
+            unsafe_allow_html=True,
+            )
 
 # Get the base path of the Streamlit app
 base_path = os.path.abspath(__file__)
@@ -148,6 +203,9 @@ else:
     # Filter on display columns
     gdf_filtered = gdf_filtered[display_columns]
 
+    st.sidebar.image("/Users/clarabesnard/Desktop/Desktop - MacBook Air de Clara (2)/DSBA 2/QB/QB-AI-for-Good/streamlit/pages/upload/logo.png",
+                  width=150)
+
 
 ####ANALYTICS DASHBOARD
 
@@ -200,7 +258,7 @@ grouped_df = temp.groupby('year')[
     'Total Emissions (kt CH4)'].sum().reset_index()
 fig1 = go.Figure()
 fig1.add_trace(go.Scatter(
-    x=grouped_df['year'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color='#5f7d95'))
+    x=grouped_df['year'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color=graph_color))
 fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
                    xaxis_title='Year',
                    yaxis_title='Emissions (kt CH4)')
@@ -209,7 +267,7 @@ fig1.update_xaxes(dtick=1)
 grouped_df = temp[temp['plume'] == 'yes'].groupby('year')['Site'].nunique()
 fig2 = go.Figure()
 fig2.add_trace(go.Bar(
-    x=grouped_df.index, y=grouped_df.values, marker_color='#5f7d95'))
+    x=grouped_df.index, y=grouped_df.values, marker_color=graph_color))
 fig2.update_layout(title='Evolution of Total Leaks',
                    xaxis_title='Year',
                    yaxis_title='#Leaks')
@@ -228,7 +286,7 @@ grouped_df = temp.groupby('month')[
     'Total Emissions (kt CH4)'].sum().reset_index()
 fig1 = go.Figure()
 fig1.add_trace(go.Scatter(
-    x=grouped_df['month'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color='#5f7d95'))
+    x=grouped_df['month'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color=graph_color))
 fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
                    xaxis_title='Month',
                    yaxis_title='Emissions (kt CH4)')
@@ -237,7 +295,7 @@ fig1.update_xaxes(dtick=1)
 grouped_df = temp[temp['plume'] == 'yes'].groupby('month')['Site'].nunique()
 fig2 = go.Figure()
 fig2.add_trace(go.Bar(
-    x=grouped_df.index, y=grouped_df.values, marker_color='#5f7d95'))
+    x=grouped_df.index, y=grouped_df.values, marker_color=graph_color))
 fig2.update_layout(title='Evolution of Total Leaks',
                    xaxis_title='Month',
                    yaxis_title='#Leaks')
@@ -255,7 +313,7 @@ grouped_df = temp.groupby('week')[
     'Total Emissions (kt CH4)'].sum().reset_index()
 fig1 = go.Figure()
 fig1.add_trace(go.Scatter(
-    x=grouped_df['week'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color='#5f7d95'))
+    x=grouped_df['week'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color=graph_color))
 fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
                    xaxis_title='Week',
                    yaxis_title='Emissions (kt CH4)')
@@ -263,7 +321,7 @@ fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
 grouped_df = temp[temp['plume'] == 'yes'].groupby('week')['Site'].nunique()
 fig2 = go.Figure()
 fig2.add_trace(go.Bar(
-    x=grouped_df.index, y=grouped_df.values, marker_color='#5f7d95'))
+    x=grouped_df.index, y=grouped_df.values, marker_color=graph_color))
 fig2.update_layout(title='Evolution of Total Leaks',
                    xaxis_title='Week',
                    yaxis_title='#Leaks')
@@ -282,7 +340,7 @@ grouped_df = temp.groupby('datetime')[
     'Total Emissions (kt CH4)'].sum().reset_index()
 fig1 = go.Figure()
 fig1.add_trace(go.Scatter(
-    x=grouped_df['datetime'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color='#5f7d95'))
+    x=grouped_df['datetime'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color=graph_color))
 fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
                    xaxis_title='Date',
                    yaxis_title='Emissions (kt CH4)')
@@ -292,7 +350,7 @@ grouped_df = temp[temp['plume'] == 'yes'].groupby(
 grouped_df.sort_index()
 fig2 = go.Figure()
 fig2.add_trace(go.Bar(
-    x=grouped_df.index, y=grouped_df.values, marker_color='#5f7d95'))
+    x=grouped_df.index, y=grouped_df.values, marker_color=graph_color))
 fig2.update_layout(title='Evolution of Total Leaks',
                    xaxis_title='Day',
                    yaxis_title='#Leaks')
@@ -321,7 +379,7 @@ grouped_df = temp.groupby('country')[
 grouped_df = grouped_df.sort_values('Total Emissions (kt CH4)', ascending=False)
 
 fig = go.Figure(
-    [go.Bar(x=grouped_df['country'], y=grouped_df['Total Emissions (kt CH4)'], marker_color='#5f7d95')])
+    [go.Bar(x=grouped_df['country'], y=grouped_df['Total Emissions (kt CH4)'], marker_color=graph_color)])
 
 fig.update_layout(title='Total Emissions (kt CH4) per Country',
                   xaxis_title='Country',
@@ -341,7 +399,7 @@ grouped_df = temp.groupby('sector')[
 grouped_df = grouped_df.sort_values('Total Emissions (kt CH4)', ascending=False)
 
 fig = go.Figure(
-    [go.Bar(x=grouped_df['sector'], y=grouped_df['Total Emissions (kt CH4)'], marker_color='#5f7d95')])
+    [go.Bar(x=grouped_df['sector'], y=grouped_df['Total Emissions (kt CH4)'], marker_color=graph_color)])
 
 fig.update_layout(title='Total Emissions (kt CH4) per Sector',
                   xaxis_title='Sector',
@@ -365,7 +423,7 @@ grouped_df = grouped_df.sort_values(
 grouped_df = grouped_df.tail(10)
 
 fig = go.Figure(
-    [go.Bar(x=grouped_df['Total Emissions (kt CH4)'], y=grouped_df['company'], marker_color='#5f7d95', orientation='h')])
+    [go.Bar(x=grouped_df['Total Emissions (kt CH4)'], y=grouped_df['company'], marker_color=graph_color, orientation='h')])
 
 fig.update_layout(title='Top 10 Companies in producing emissions (kt CH4)',
                   yaxis_title='Companies',
