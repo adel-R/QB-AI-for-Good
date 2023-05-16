@@ -18,6 +18,8 @@ import zipfile
 import shutil
 import glob
 import util.GradCam as GradCam
+import io
+import matplotlib.pyplot as plt
 
 # Layout
 st.set_page_config(layout="wide")
@@ -95,7 +97,7 @@ st.markdown(f"""
         .css-1oe5cao{{
             padding-top: 2rem;
         }}
-        
+
         .stCheckbox{{
             opacity:0;
         }}
@@ -337,14 +339,14 @@ else:
             # gradcam_image = gradcam_image.convert("RGB")
             # st.image(gradcam_image,width=300)
             fig = GradCam.visualize_heatmap(img_raw, heat_map, lbl_h)
-            img_width=200
-            # Create the HTML code to set the width
-            html_code = f'<div style="width: {img_width}px">{fig.get_tightbbox(fig.canvas.get_renderer()).to_html()}</div>'
 
-            # Render the HTML code using st.markdown()
-            st.markdown(html_code, unsafe_allow_html=True)
+            # Save the figure to a BytesIO object
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
 
-            st.caption('Heatmap of image '+str(metadata_img['image_name'][0].values))
+            # Display the saved image using st.image
+            st.image(buffer, width=200)
 
         
         st.divider()
@@ -352,9 +354,9 @@ else:
     #Cache data
     @st.cache_data
     def display_no_metadata(path_to_img,prob,lbl,img_raw, heat_map, lbl_h):
-        col3,col4 = st.columns(2)
+        zz,col4,col5,zw = st.columns([1,4,3,1])
         
-        with col3:
+        with col4:
             st.subheader('Predictions results for image: '+ str(os.path.basename(path_to_img)))
             st.write('Confidence probability (%): '+str(round(prob*100,2))+' %')
             if lbl>0:
@@ -363,20 +365,20 @@ else:
                 st.subheader(':heavy_check_mark: :green[No plume has been identified]')
 
 
-        with col4:
+        with col5:
             # gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
             # gradcam_image = Image.open(gradcam_filename)
             # gradcam_image = gradcam_image.convert("RGB")
             # st.image(gradcam_image,width=300)
             fig = GradCam.visualize_heatmap(img_raw, heat_map, lbl_h)
-            img_width=200
-            # Create the HTML code to set the width
-            html_code = f'<div style="width: {img_width}px">{fig.get_tightbbox(fig.canvas.get_renderer()).to_html()}</div>'
+            
+            # Save the figure to a BytesIO object
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
 
-            # Render the HTML code using st.markdown()
-            st.markdown(html_code, unsafe_allow_html=True)
-
-            st.caption('Heatmap of image '+ str(os.path.basename(path_to_img)))
+            # Display the saved image using st.image
+            st.image(buffer, width=200)
 
         st.divider()
 
