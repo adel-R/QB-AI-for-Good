@@ -281,6 +281,12 @@ else:
     # getting to correct device
     device, model = modeling.get_device(model)
     
+    # Function to remove the folder and its contents
+    def remove_folder(folder_path):
+        if os.path.exists(folder_path):
+            shutil.rmtree(folder_path)
+
+
     #Cache data
     @st.cache_data
     # Check if metadata is valid (and concatenate multiple files if any)
@@ -310,6 +316,8 @@ else:
                 return False  
         else:
             return False
+
+
 
     #Cache data
     @st.cache_data
@@ -479,14 +487,6 @@ else:
             with col6:
                 verif_button = st.button('Request Verification')
 
-            # Function to remove the folder and its contents
-            def remove_folder(folder_path):
-                if os.path.exists(folder_path):
-                    shutil.rmtree(folder_path)
-                    st.success(f"Folder '{folder_path}' removed successfully.")
-                else:
-                    st.warning(f"Folder '{folder_path}' does not exist.")
-
             # Check if the button is clicked
             if val_button:
                 remove_folder(output_folder)
@@ -503,5 +503,10 @@ else:
 
         else:
             st.warning('Invalid image file format. The file must be images with .tif or .tiff extensions')
+    else:
+        remove_folder(os.path.dirname(base_path)+"/upload/")
+        val_button=None
+        verif_button=None
+        zip_file=None
 
             
