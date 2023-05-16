@@ -16,6 +16,8 @@ import util.inference as inference
 import util.modeling as modeling
 import zipfile
 import shutil
+import glob
+import util.GradCam as GradCam
 
 # Layout
 st.set_page_config(layout="wide")
@@ -290,7 +292,7 @@ else:
 
 
 
-            # path_to_img = 'images/plume/20230223_methane_mixing_ratio_id_8446.tif'
+            metadata_df = metadata(output_folder)
 
             # # Prediction
             # prob, lbl = inference.infer(model=model,path_to_img=path_to_img,device=device)
@@ -322,6 +324,8 @@ else:
         #         else:
         #             st.subheader(':heavy_check_mark: :green[No plume has been identified]')
 
+                # Fetch an image path
+                path_to_img = image_list_paths[i]
 
         #     with col4:
         #         gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
@@ -346,13 +350,13 @@ else:
         with col6:
             verif_button = st.button('Request Verification')
 
-        # Function to remove the folder and its contents
-        def remove_folder(folder_path):
-            if os.path.exists(folder_path):
-                shutil.rmtree(folder_path)
-                st.success(f"Folder '{folder_path}' removed successfully.")
-            else:
-                st.warning(f"Folder '{folder_path}' does not exist.")
+            # Function to remove the folder and its contents
+            def remove_folder(folder_path):
+                if os.path.exists(folder_path):
+                    shutil.rmtree(folder_path)
+                    st.success(f"Folder '{folder_path}' removed successfully.")
+                else:
+                    st.warning(f"Folder '{folder_path}' does not exist.")
 
         # Check if the button is clicked
         if val_button:
