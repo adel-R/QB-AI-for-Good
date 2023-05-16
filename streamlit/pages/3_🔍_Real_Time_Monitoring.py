@@ -22,6 +22,7 @@ st.set_page_config(layout="wide")
 margin = 0
 padding = 2
 
+graph_color = '#053E57'
 # Layout
 st.markdown(f"""
     <style>
@@ -33,17 +34,60 @@ st.markdown(f"""
             margin: {margin}rem;
         }}
 
-        .css-1oe5cao{{
+        [data-testid=stDecoration] {{
+            background-image: linear-gradient(90deg, #053E57, #FFFFFF);
+        }}
+
+        [data-testid=stSidebarNav] .css-wjbhl0 {{
             padding-top: 2rem;
         }}
 
-        .stCheckbox{{
-            opacity: 0;
+        [data-testid=stSidebar] {{
+            background-color: #053E57;
+            color:#FFFFFF;
         }}
 
+        [data-testid=stMarkdownContainer] h2{{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] [data-testid=stMarkdownContainer] {{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] [data-testid=stImage] {{
+            text-align: center;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }}
+
+        [data-testid=stSidebarNav] a span {{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stMarkdownContainer] h1{{
+            color:#053E57;
+        }}
+
+        [data-testid=metric-container] {{
+            color:#053E57;
+        }}
+
+        [data-testid=stMarkdownContainer] {{
+            color:#053E57;
+        }}
+
+        button [data-testid=stMarkdownContainer] p{{
+          color:#053E57
+        }}
+
+        .st-ei {{
+            background-color:#053E57;
+        }}
     </style>""",
-    unsafe_allow_html=True,
-)
+            unsafe_allow_html=True,
+            )
 
 # Get the base path of the Streamlit app
 base_path = os.path.abspath(__file__)
@@ -55,10 +99,11 @@ parent_path = os.path.dirname(os.path.dirname(base_path))
 file_path = parent_path + "/map/map.shp"
 
 # read map file
-gdf = gpd.read_file(file_path) 
+gdf = gpd.read_file(file_path)
 
 # Add datetime
 gdf['datetime'] =  pd.to_datetime(gdf['date'], format= "%Y%m%d")
+
 
 with st.sidebar:
     st.header('Enter your filters:')
@@ -68,6 +113,7 @@ with st.sidebar:
     sectors = st.multiselect('Sectors', sorted(list(gdf['sector'].unique())))
     companies = st.multiselect('Companies', sorted(list(gdf['company'].unique())))
     countries = st.multiselect('Countries', sorted(list(gdf['country'].unique())))
+
 
 #Apply filters
 gdf_filtered = gdf.copy()
@@ -103,7 +149,7 @@ else:
     # Filter on the status
     if status !=[]:
         gdf_filtered = gdf_filtered[gdf_filtered['Status'].isin(status)]
-    
+
     # Filter on the sectors
     if sectors !=[]:
         gdf_filtered = gdf_filtered[gdf_filtered['sector'].isin(sectors)]
@@ -123,6 +169,8 @@ else:
         gdf_filtered = gdf_filtered[(gdf_filtered["datetime"] >= pd.Timestamp(period[0])) & (gdf_filtered["datetime"] <= pd.Timestamp(period[1]))]
     gdf_filtered["datetime"] = gdf_filtered["datetime"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
+
+
 #Cache data
 @st.cache_data
 def convert_df(df):
@@ -138,6 +186,8 @@ with st.sidebar:
         file_name='large_df.csv',
         mime='text/csv',
     )
+    st.sidebar.image("/Users/clarabesnard/Desktop/Desktop - MacBook Air de Clara (2)/DSBA 2/QB/QB-AI-for-Good/streamlit/pages/upload/logo.png",
+                      width=150)
 
 # Write dataframe to map
 if gdf_filtered.shape[0]<1:
@@ -152,7 +202,7 @@ else:
                                                  'CO2eq': 'Emissions (kt CO2eq)',
                                                  'Site' : 'Site ID',
                                                  'Credit' : 'Carbon Credit cost ($)' })
-    
+
     display_columns = ['Site ID',
                         'city',
                         'country',
@@ -163,10 +213,11 @@ else:
                         'Contact']
 
 
+
     # Filter on display columns
     gdf_filtered = gdf_filtered[display_columns]
-    
-    ### Prediction from model 
+
+    ### Prediction from model
     # Title and Side Bar for filters
     st.title("Real Time Monitoring")
 
@@ -191,10 +242,10 @@ else:
 
         with col2:
             st.write('Most recent image')
-            st.image(original_image,use_column_width=True) 
+            st.image(original_image,use_column_width=True)
             st.divider()
             st.write('Heatmap')
-            st.image(gradcam_image,use_column_width=True) 
+            st.image(gradcam_image,use_column_width=True)
     else:
         st.dataframe(pd.DataFrame(gdf_filtered),height = 530 , use_container_width=True)
 
@@ -202,8 +253,8 @@ else:
     # Title and Side Bar for filters
     st.header("Inspect entries")
     # Add New entry for prediction
-    zip_file = st.file_uploader('Upload satelite images and their metadata to identify potential plumes:', 
-                                type=None, accept_multiple_files=False, 
+    zip_file = st.file_uploader('Upload satelite images and their metadata to identify potential plumes:',
+                                type=None, accept_multiple_files=False,
                                 help='The zip file must contain no subfolders. The metadata must contain complete and accurate information.',
                                 )
 
@@ -212,7 +263,7 @@ else:
 
     # getting to correct device
     device, model = modeling.get_device(model)
-    
+
     # Check if file is tif file
     def is_tiff_file(file_path):
         file_extension = os.path.splitext(file_path)[1].lower()
@@ -224,7 +275,7 @@ else:
         output_folder = os.path.dirname(base_path)+"/upload/"
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
-        
+
         # Check if the uploaded file is a zip file
         if zipfile.is_zipfile(zip_file):
             # Open the zip file
@@ -236,16 +287,16 @@ else:
             zip_file_path = os.path.join(output_folder, zip_file.name)
             with open(zip_file_path, "wb") as file:
                 file.write(zip_file.getbuffer())
-        
-        
+
+
 
             # path_to_img = 'images/plume/20230223_methane_mixing_ratio_id_8446.tif'
 
-            # # Prediction 
+            # # Prediction
             # prob, lbl = inference.infer(model=model,path_to_img=path_to_img,device=device)
             # print(f"Probability of plume: {prob}")
             # print(f"Predicted label: {lbl}")
-        
+
 
         # if len(unzipped)>5:
         #     st.header('The first '+ str(min(len(unzipped),5)) +' results are displayed below')
@@ -254,7 +305,7 @@ else:
 
         # for i in range(min(len(unzipped),5)):
         #     col3,col4 = st.columns(2)
-            
+
         #     with col3:
         #         st.subheader('Predictions results for scene ID :'+unzipped)
         #         st.write('Scene ID: ')
@@ -278,10 +329,10 @@ else:
         #         gradcam_image = gradcam_image.convert("RGB")
         #         st.image(gradcam_image,width=300)
         #         st.caption('Heatmap of Scene ID XXX')
-  
-            
+
+
         #     st.divider()
-        
+
         d,col5,col6,col7,c = st.columns([3,1,1,1,3])
         with col7:
             st.download_button(
