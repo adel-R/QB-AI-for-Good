@@ -297,7 +297,6 @@ else:
             GradCam.visualize_heatmap(img_raw, heat_map, lbl_h)
             st.caption('Heatmap of image '+ str(os.path.basename(path_to_img)))
 
-        
         st.divider()
 
     # When zip file is loaded
@@ -359,7 +358,7 @@ else:
                 prob, lbl = inference.infer(model=model,path_to_img=path_to_img,device=device)
 
                 # GradCam
-                heat_map, img_raw, lbl_h = GradCam.get_heatmap(model=model, path_to_img=path_to_img, device=device, against_label=0)
+                heat_map, img_raw, lbl_h = GradCam.get_heatmap(model=model, path_to_img=path_to_img, device=device, against_label=None)
 
                 # metadata valid format
                 if metadata_df != False:
@@ -408,7 +407,14 @@ else:
             if val_button:
                 remove_folder(output_folder)
                 val_button=None
-        
+                verif_button=None
+            
+            # Check if the button is clicked
+            if verif_button:
+                remove_folder(output_folder)
+                val_button=None
+                verif_button=None
+
         else:
             st.warning('Invalid image file format. The file must be images with .tif or .tiff extensions')
 
