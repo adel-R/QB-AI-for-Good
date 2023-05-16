@@ -116,12 +116,13 @@ def get_heatmap(model, path_to_img, device, layer_number=4, alpha=0.4, against_l
 def visualize_heatmap(img, heatmap_j2, lbl, save_fig=False, file_name=None):
     fig, axs = plt.subplots(1, 1, figsize=(5, 5))
     axs.imshow(img, cmap="gray_r")
-    axs.imshow(heatmap_j2[0][0])
-    if lbl == 1:
-        title = "image having plume"
-    else:
-        title = "image not having plume"
-    plt.title(f"Gradients areas w.r.t {title}")
+    if lbl:
+        axs.imshow(heatmap_j2[0][0])
+    # if lbl == 1:
+    #     title = "image having plume"
+    # else:
+    #     title = "image not having plume"
+    # plt.title(f"Gradients areas w.r.t {title}")
     plt.axis('off')
     if save_fig:
         if file_name is not None:
@@ -132,3 +133,6 @@ def visualize_heatmap(img, heatmap_j2, lbl, save_fig=False, file_name=None):
     else:
         plt.ioff()
         plt.show()
+    # Adjust the subplot parameters to remove the whitespace
+    fig.subplots_adjust(left=0, right=1, top=1,bottom=0)
+    return fig

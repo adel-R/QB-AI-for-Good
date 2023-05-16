@@ -22,6 +22,7 @@ st.set_page_config(layout="wide")
 margin = 0
 padding = 2
 
+graph_color = '#053E57'
 # Layout
 st.markdown(f"""
     <style>
@@ -31,6 +32,59 @@ st.markdown(f"""
             padding-left: {padding}rem;
             padding-right: {padding}rem;
             margin: {margin}rem;
+        }}
+
+        [data-testid=stDecoration] {{
+            background-image: linear-gradient(90deg, #053E57, #FFFFFF);
+        }}
+
+        [data-testid=stSidebarNav] .css-wjbhl0 {{
+            padding-top: 2rem;
+        }}
+
+        [data-testid=stSidebar] {{
+            background-color: #053E57;
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] .block-container {{
+            margin-top: 0rem;
+        }}
+
+        [data-testid=stMarkdownContainer] h2{{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] [data-testid=stMarkdownContainer] {{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] [data-testid=stImage] {{
+            text-align: center;
+            padding-top: 2rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }}
+
+        [data-testid=stSidebarNav] a span {{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stMarkdownContainer] h1{{
+            color:#053E57;
+        }}
+
+        [data-testid=metric-container] {{
+            color:#053E57;
+        }}
+
+        [data-testid=stMarkdownContainer] {{
+            color:#053E57;
+        }}
+
+        [data-baseweb=tab-highlight] {{
+            background-color:#053E57;
         }}
 
         .css-1oe5cao{{
@@ -58,7 +112,8 @@ gdf = gpd.read_file(file_path)
 # Add datetime
 gdf['datetime'] =  pd.to_datetime(gdf['date'], format= "%Y%m%d")
 
-
+#st.sidebar.image("/Users/clarabesnard/Desktop/Desktop - MacBook Air de Clara (2)/DSBA 2/QB/QB-AI-for-Good/streamlit/logo.png",
+#                 use_column_width=True)
 # Title and Side Bar for filters
 st.title("CrystalPeak Oil & Gas Methane Emission Dashboard")
 with st.sidebar:
@@ -145,8 +200,10 @@ else:
     # Filter on display columns
     gdf_filtered = gdf_filtered[display_columns]
 
+    st.sidebar.image(parent_path +"/logo/logo.png",
+                     width=150)
 
-####ANALYTICS DASHBOARD
+    ####ANALYTICS DASHBOARD
     sector_gdf = gdf_filtered[gdf_filtered['sector']
                               == 'Landfills']
     avg_emission = sector_gdf['Total Emissions (kt CH4)'].mean()
@@ -180,208 +237,208 @@ else:
                 str(round(total_emission,1)) + ' kt CH4', str(round(total_emission/sum_emission*100,1))+'% of Sector', delta_color='off')
     avg_days = gdf_filtered['Estimated Duration (hours)'].mean()
     col4.metric("Average leak duration", str(round(avg_days,1)) + 'h')
-### Trend
+    ### Trend
 
 
-####
-# Plot the concentration of methane (Concentrat) or emission levels (Emission) over time (date or datetime) to visualize trends, seasonal variations, or any significant changes.
-###
+    ####
+    # Plot the concentration of methane (Concentrat) or emission levels (Emission) over time (date or datetime) to visualize trends, seasonal variations, or any significant changes.
+    ###
 
 
-col1, col2 = st.columns(2)
-#print(gdf_filtered.dtypes)
-# Deal with NAs
-tab1, tab2, tab3, tab4 = st.tabs(["Day", "Week", "Month", "Year"])
-
-temp = gdf_filtered
-temp['datetime'] = pd.to_datetime(temp['datetime'])
-temp['year'] = temp['datetime'].dt.year
-temp['month'] = temp['datetime'].dt.strftime('%m-%Y')
-temp['week'] = temp['datetime'].dt.strftime('%W-%Y')
-temp['week'] = 'W' + temp['week'].astype(str)
-temp['day'] = temp['datetime'].dt.strftime('%d-%m-%Y')
-temp['Total Emissions (kt CH4)'] = temp['Total Emissions (kt CH4)'].fillna(0)
-#sorted_df = temp.sort_values('datetime')
-
-
-######### YEAR #########
-grouped_df = temp.groupby('year')[
-    'Total Emissions (kt CH4)'].sum().reset_index()
-fig1 = go.Figure()
-fig1.add_trace(go.Scatter(
-    x=grouped_df['year'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color='#5f7d95'))
-fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
-                  xaxis_title='Year',
-                  yaxis_title='Emissions (kt CH4)')
-fig1.update_xaxes(dtick= 1)
-
-
-grouped_df = temp[temp['plume'] == 'yes'].groupby('year')['Site'].nunique()
-fig2 = go.Figure()
-fig2.add_trace(go.Bar(
-    x=grouped_df.index, y=grouped_df.values, marker_color='#5f7d95'))
-fig2.update_layout(title='Evolution of Total Leaks',
-                  xaxis_title='Year',
-                  yaxis_title='#Leaks')
-fig2.update_xaxes(dtick= 1)
-
-with tab4:
     col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig1, use_container_width=True)
-    with col2:
-        st.plotly_chart(fig2, use_container_width=True)
+    #print(gdf_filtered.dtypes)
+    # Deal with NAs
+    tab1, tab2, tab3, tab4 = st.tabs(["Day", "Week", "Month", "Year"])
+
+    temp = gdf_filtered
+    temp['datetime'] = pd.to_datetime(temp['datetime'])
+    temp['year'] = temp['datetime'].dt.year
+    temp['month'] = temp['datetime'].dt.strftime('%m-%Y')
+    temp['week'] = temp['datetime'].dt.strftime('%W-%Y')
+    temp['week'] = 'W' + temp['week'].astype(str)
+    temp['day'] = temp['datetime'].dt.strftime('%d-%m-%Y')
+    temp['Total Emissions (kt CH4)'] = temp['Total Emissions (kt CH4)'].fillna(0)
+    #sorted_df = temp.sort_values('datetime')
 
 
-######### MONTH #########
-temp.sort_values('datetime', ascending=True)
-grouped_df = temp.groupby('month')[
-    'Total Emissions (kt CH4)'].sum().reset_index()
-fig1 = go.Figure()
-fig1.add_trace(go.Scatter(
-    x=grouped_df['month'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color='#5f7d95'))
-fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
-                  xaxis_title='Month',
-                  yaxis_title='Emissions (kt CH4)')
-fig1.update_xaxes(dtick=1)
+    ######### YEAR #########
+    grouped_df = temp.groupby('year')[
+        'Total Emissions (kt CH4)'].sum().reset_index()
+    fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(
+        x=grouped_df['year'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color=graph_color))
+    fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
+                    xaxis_title='Year',
+                    yaxis_title='Emissions (kt CH4)')
+    fig1.update_xaxes(dtick= 1)
 
-grouped_df = temp[temp['plume'] == 'yes'].groupby('month')['Site'].nunique()
-fig2 = go.Figure()
-fig2.add_trace(go.Bar(
-    x=grouped_df.index, y=grouped_df.values, marker_color='#5f7d95'))
-fig2.update_layout(title='Evolution of Total Leaks',
-                   xaxis_title='Month',
-                   yaxis_title='#Leaks')
-fig2.update_xaxes(dtick=1)
 
-with tab3:
+    grouped_df = temp[temp['plume'] == 'yes'].groupby('year')['Site'].nunique()
+    fig2 = go.Figure()
+    fig2.add_trace(go.Bar(
+        x=grouped_df.index, y=grouped_df.values, marker_color=graph_color))
+    fig2.update_layout(title='Evolution of Total Leaks',
+                    xaxis_title='Year',
+                    yaxis_title='#Leaks')
+    fig2.update_xaxes(dtick= 1)
+
+    with tab4:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.plotly_chart(fig1, use_container_width=True)
+        with col2:
+            st.plotly_chart(fig2, use_container_width=True)
+
+
+    ######### MONTH #########
+    temp.sort_values('datetime', ascending=True)
+    grouped_df = temp.groupby('month')[
+        'Total Emissions (kt CH4)'].sum().reset_index()
+    fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(
+        x=grouped_df['month'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color=graph_color))
+    fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
+                    xaxis_title='Month',
+                    yaxis_title='Emissions (kt CH4)')
+    fig1.update_xaxes(dtick=1)
+
+    grouped_df = temp[temp['plume'] == 'yes'].groupby('month')['Site'].nunique()
+    fig2 = go.Figure()
+    fig2.add_trace(go.Bar(
+        x=grouped_df.index, y=grouped_df.values, marker_color=graph_color))
+    fig2.update_layout(title='Evolution of Total Leaks',
+                    xaxis_title='Month',
+                    yaxis_title='#Leaks')
+    fig2.update_xaxes(dtick=1)
+
+    with tab3:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.plotly_chart(fig1, use_container_width=True)
+        with col2:
+            st.plotly_chart(fig2, use_container_width=True)
+
+
+    grouped_df = temp.groupby('week')[
+        'Total Emissions (kt CH4)'].sum().reset_index()
+    fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(
+        x=grouped_df['week'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color=graph_color))
+    fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
+                    xaxis_title='Week',
+                    yaxis_title='Emissions (kt CH4)')
+
+    grouped_df = temp[temp['plume'] == 'yes'].groupby('week')['Site'].nunique()
+    fig2 = go.Figure()
+    fig2.add_trace(go.Bar(
+        x=grouped_df.index, y=grouped_df.values, marker_color=graph_color))
+    fig2.update_layout(title='Evolution of Total Leaks',
+                    xaxis_title='Week',
+                    yaxis_title='#Leaks')
+    fig2.update_xaxes(dtick=1)
+    fig2.update_xaxes(tickangle=45)
+
+    with tab2:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.plotly_chart(fig1, use_container_width=True)
+        with col2:
+            st.plotly_chart(fig2, use_container_width=True)
+
+
+    grouped_df = temp.groupby('datetime')[
+        'Total Emissions (kt CH4)'].sum().reset_index()
+    fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(
+        x=grouped_df['datetime'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color=graph_color))
+    fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
+                    xaxis_title='Date',
+                    yaxis_title='Emissions (kt CH4)')
+
+    grouped_df = temp[temp['plume'] == 'yes'].groupby(
+        'datetime')['Site'].nunique()
+    grouped_df.sort_index()
+    fig2 = go.Figure()
+    fig2.add_trace(go.Bar(
+        x=grouped_df.index, y=grouped_df.values, marker_color=graph_color))
+    fig2.update_layout(title='Evolution of Total Leaks',
+                    xaxis_title='Day',
+                    yaxis_title='#Leaks')
+
+
+    with tab1:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.plotly_chart(fig1, use_container_width=True)
+        with col2:
+            st.plotly_chart(fig2, use_container_width=True)
+
+
+    st.markdown("""---""")
+
+
+    # by country and site
     col1, col2 = st.columns(2)
+
+    ## by country
+    grouped_df = temp.groupby('country')[
+        'Total Emissions (kt CH4)'].sum().reset_index()
+
+    grouped_df = grouped_df.sort_values('Total Emissions (kt CH4)', ascending=False)
+
+    fig = go.Figure(
+        [go.Bar(x=grouped_df['country'], y=grouped_df['Total Emissions (kt CH4)'], marker_color=graph_color)])
+
+    fig.update_layout(title='Total Emissions (kt CH4) per Country',
+                    xaxis_title='Country',
+                    yaxis_title='Emissions (kt CH4)')
+
+    fig.update_xaxes(tickangle=45)
+
+
     with col1:
-        st.plotly_chart(fig1, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
+
+
+
+
+
+    ## by site
+
+
+    temp['Site'] = temp['Site'].astype(str)
+    grouped_df = temp.groupby('Site')[
+        'Total Emissions (kt CH4)'].sum().reset_index()
+
+    grouped_df = grouped_df.sort_values('Total Emissions (kt CH4)', ascending=False)
+
+    fig = go.Figure(
+        [go.Bar(x=grouped_df['Site'], y=grouped_df['Total Emissions (kt CH4)'], marker_color=graph_color)])
+
+    fig.update_layout(title='Total Emissions (kt CH4) per Site',
+                    xaxis_title='Site',
+                    yaxis_title='Emissions (kt CH4)')
+    fig.update_xaxes(tickangle=45)
+    fig.update_layout(xaxis={'type': 'category'})
+
+    fig.add_shape(
+        type='line',
+        x0=0, x1=len(grouped_df['Site']),
+        y0=avg_emission, y1=avg_emission,
+        line=dict(color='#f06292', width=2, dash='dash')
+    )
+    fig.add_annotation(
+        x=len(grouped_df['Site'])-2,
+        y=avg_emission + 0.05 * max(grouped_df['Total Emissions (kt CH4)']),
+        text='Sector average',
+        showarrow=False,
+        font=dict(color='#f06292')
+    )
+
+
+
     with col2:
-        st.plotly_chart(fig2, use_container_width=True)
-
-
-grouped_df = temp.groupby('week')[
-    'Total Emissions (kt CH4)'].sum().reset_index()
-fig1 = go.Figure()
-fig1.add_trace(go.Scatter(
-    x=grouped_df['week'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color='#5f7d95'))
-fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
-                  xaxis_title='Week',
-                  yaxis_title='Emissions (kt CH4)')
-
-grouped_df = temp[temp['plume'] == 'yes'].groupby('week')['Site'].nunique()
-fig2 = go.Figure()
-fig2.add_trace(go.Bar(
-    x=grouped_df.index, y=grouped_df.values, marker_color='#5f7d95'))
-fig2.update_layout(title='Evolution of Total Leaks',
-                   xaxis_title='Week',
-                   yaxis_title='#Leaks')
-fig2.update_xaxes(dtick=1)
-fig2.update_xaxes(tickangle=45)
-
-with tab2:
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig1, use_container_width=True)
-    with col2:
-        st.plotly_chart(fig2, use_container_width=True)
-
-
-grouped_df = temp.groupby('datetime')[
-    'Total Emissions (kt CH4)'].sum().reset_index()
-fig1 = go.Figure()
-fig1.add_trace(go.Scatter(
-    x=grouped_df['datetime'], y=grouped_df['Total Emissions (kt CH4)'], mode='markers+lines', marker_color='#5f7d95'))
-fig1.update_layout(title='Evolution of Total Emissions (kt CH4)',
-                  xaxis_title='Date',
-                  yaxis_title='Emissions (kt CH4)')
-
-grouped_df = temp[temp['plume'] == 'yes'].groupby(
-    'datetime')['Site'].nunique()
-grouped_df.sort_index()
-fig2 = go.Figure()
-fig2.add_trace(go.Bar(
-    x=grouped_df.index, y=grouped_df.values, marker_color='#5f7d95'))
-fig2.update_layout(title='Evolution of Total Leaks',
-                   xaxis_title='Day',
-                   yaxis_title='#Leaks')
-
-
-with tab1:
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig1, use_container_width=True)
-    with col2:
-        st.plotly_chart(fig2, use_container_width=True)
-
-
-st.markdown("""---""")
-
-
-# by country and site
-col1, col2 = st.columns(2)
-
-## by country
-grouped_df = temp.groupby('country')[
-    'Total Emissions (kt CH4)'].sum().reset_index()
-
-grouped_df = grouped_df.sort_values('Total Emissions (kt CH4)', ascending=False)
-
-fig = go.Figure(
-    [go.Bar(x=grouped_df['country'], y=grouped_df['Total Emissions (kt CH4)'], marker_color='#5f7d95')])
-
-fig.update_layout(title='Total Emissions (kt CH4) per Country',
-                  xaxis_title='Country',
-                  yaxis_title='Emissions (kt CH4)')
-
-fig.update_xaxes(tickangle=45)
-
-
-with col1:
-  st.plotly_chart(fig, use_container_width=True)
-
-
-
-
-
-## by site
-
-
-temp['Site'] = temp['Site'].astype(str)
-grouped_df = temp.groupby('Site')[
-    'Total Emissions (kt CH4)'].sum().reset_index()
-
-grouped_df = grouped_df.sort_values('Total Emissions (kt CH4)', ascending=False)
-
-fig = go.Figure(
-    [go.Bar(x=grouped_df['Site'], y=grouped_df['Total Emissions (kt CH4)'], marker_color='#5f7d95')])
-
-fig.update_layout(title='Total Emissions (kt CH4) per Site',
-                  xaxis_title='Site',
-                  yaxis_title='Emissions (kt CH4)')
-fig.update_xaxes(tickangle=45)
-fig.update_layout(xaxis={'type': 'category'})
-
-fig.add_shape(
-    type='line',
-    x0=0, x1=len(grouped_df['Site']),
-    y0=avg_emission, y1=avg_emission,
-    line=dict(color='#f06292', width=2, dash='dash')
-)
-fig.add_annotation(
-    x=len(grouped_df['Site'])-2,
-    y=avg_emission + 0.05 * max(grouped_df['Total Emissions (kt CH4)']),
-    text='Sector average',
-    showarrow=False,
-    font=dict(color='#f06292')
-)
-
-
-
-with col2:
-  st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
 
 
