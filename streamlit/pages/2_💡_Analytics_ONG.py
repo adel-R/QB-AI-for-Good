@@ -209,6 +209,8 @@ else:
 
     st.sidebar.image(parent_path +"/logo/logo.png",
                      width=150)
+    
+    print(parent_path +"/logo/logo.png")
 
 
     ####ANALYTICS DASHBOARD
