@@ -49,6 +49,10 @@ st.markdown(f"""
             color:#FFFFFF;
         }}
 
+        [data-testid=stSidebar] .block-container {{
+            margin-top: 0rem;
+        }}
+
         [data-testid=stMarkdownContainer] h2{{
             color:#FFFFFF;
         }}
@@ -325,7 +329,7 @@ else:
         #             st.subheader(':heavy_check_mark: :green[No plume has been identified]')
 
                 # Fetch an image path
-                path_to_img = image_list_paths[i]
+            path_to_img = image_list_paths[i]
 
         #     with col4:
         #         gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'

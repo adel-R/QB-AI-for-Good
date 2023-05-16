@@ -47,6 +47,10 @@ st.markdown(f"""
             color:#FFFFFF;
         }}
 
+        [data-testid=stSidebar] .block-container {{
+            margin-top: 0rem;
+        }}
+
         [data-testid=stMarkdownContainer] h2{{
             color:#FFFFFF;
         }}
@@ -79,7 +83,7 @@ st.markdown(f"""
             color:#053E57;
         }}
 
-        .st-ei {{
+        [data-baseweb=tab-highlight] {{
             background-color:#053E57;
         }}
     </style>""",

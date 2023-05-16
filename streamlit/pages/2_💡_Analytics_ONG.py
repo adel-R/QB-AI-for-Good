@@ -49,6 +49,7 @@ st.markdown(f"""
             color:#FFFFFF;
         }}
 
+
         [data-testid=stSidebar] [data-testid=stMarkdownContainer] {{
             color:#FFFFFF;
         }}
@@ -59,6 +60,10 @@ st.markdown(f"""
             display: block;
             margin-left: auto;
             margin-right: auto;
+        }}
+
+        [data-testid=stSidebar] .block-container {{
+            margin-top: 0rem;
         }}
 
         [data-testid=stSidebarNav] a span {{
@@ -77,8 +82,12 @@ st.markdown(f"""
             color:#053E57;
         }}
 
-        .st-ei {{
+        [data-baseweb=tab-highlight] {{
             background-color:#053E57;
+        }}
+
+        button [data-testid=stMarkdownContainer] .css-1offfwpp{{
+          color:#053E57
         }}
     </style>""",
             unsafe_allow_html=True,

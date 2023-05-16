@@ -12,10 +12,9 @@ import branca
 
 # Layout
 st.set_page_config(layout="wide")
-margin = 0
+margin = 2
 padding = 2
 
-graph_color = '#053E57'
 # Layout
 st.markdown(f"""
     <style>
@@ -24,11 +23,15 @@ st.markdown(f"""
             padding-bottom : 0rem;
             padding-left: {padding}rem;
             padding-right: {padding}rem;
-            margin: {margin}rem;
+            margin-top: {margin}rem;
         }}
 
         [data-testid=stDecoration] {{
             background-image: linear-gradient(90deg, #053E57, #FFFFFF);
+        }}
+
+        .css-1oe5cao{{
+            padding-top: 2rem;
         }}
 
         [data-testid=stSidebarNav] .css-wjbhl0 {{
@@ -38,6 +41,10 @@ st.markdown(f"""
         [data-testid=stSidebar] {{
             background-color: #053E57;
             color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] .block-container {{
+            margin-top: 0rem;
         }}
 
         [data-testid=stMarkdownContainer] h2{{
@@ -50,6 +57,7 @@ st.markdown(f"""
 
         [data-testid=stSidebar] [data-testid=stImage] {{
             text-align: center;
+            padding-top: 2rem;
             display: block;
             margin-left: auto;
             margin-right: auto;
@@ -71,16 +79,16 @@ st.markdown(f"""
             color:#053E57;
         }}
 
-        button [data-testid=stMarkdownContainer] p{{
-          color:#053E57
-        }}
-
         .st-ei {{
             background-color:#053E57;
         }}
+
+        button [data-testid=stMarkdownContainer] p{{
+          color:#053E57
+        }}
     </style>""",
-            unsafe_allow_html=True,
-            )
+    unsafe_allow_html=True,
+)
 
 # Get the base path of the Streamlit app
 base_path = os.path.abspath(__file__)
