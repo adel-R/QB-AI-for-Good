@@ -1,0 +1,6 @@
+date,id_coord,plume,set,lat,lon,coord_x,coord_y,path
+20230103,id_2542,yes,train,35.538,112.524,42,37,20230103_methane_mixing_ratio_id_2542
+20230111,id_8714,yes,train,27.89333333,-101.2933333,60,10,20230111_methane_mixing_ratio_id_8714
+20230210,id_4447,yes,train,53.95454545,87.77909091,35,4,20230210_methane_mixing_ratio_id_4447
+20230119,id_4574,no,train,36.59651962,38.32140523,11,48,20230119_methane_mixing_ratio_id_4574
+20230119,id_6609,no,train,47.75897911,27.80163006,21,15,20230119_methane_mixing_ratio_id_6609
