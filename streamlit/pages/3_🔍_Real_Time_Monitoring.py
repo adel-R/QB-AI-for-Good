@@ -24,7 +24,6 @@ st.set_page_config(layout="wide")
 margin = 0
 padding = 2
 
-# Layout
 st.markdown(f"""
     <style>
         .block-container{{
@@ -35,17 +34,79 @@ st.markdown(f"""
             margin: {margin}rem;
         }}
 
-        .css-1oe5cao{{
+        [data-testid=stDecoration] {{
+            background-image: linear-gradient(90deg, #053E57, #FFFFFF);
+        }}
+
+        [data-testid=stSidebarNav] .css-wjbhl0 {{
             padding-top: 2rem;
         }}
 
+        [data-testid=stSidebar] {{
+            background-color: #053E57;
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stMarkdownContainer] h2{{
+            color:#FFFFFF;
+        }}
+
+
+        [data-testid=stSidebar] [data-testid=stMarkdownContainer] {{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stSidebar] [data-testid=stImage] {{
+            text-align: center;
+            padding-top: 2rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }}
+
+        [data-testid=stSidebar] .block-container {{
+            margin-top: 0rem;
+        }}
+
+        [data-testid=stSidebarNav] a span {{
+            color:#FFFFFF;
+        }}
+
+        [data-testid=stMarkdownContainer] h1{{
+            color:#053E57;
+        }}
+
+        [data-testid=metric-container] {{
+            color:#053E57;
+        }}
+
+        [data-testid=stMarkdownContainer] {{
+            color:#053E57;
+        }}
+
+        [data-baseweb=tab-highlight] {{
+            background-color:#053E57;
+        }}
+
+        button [data-testid=stMarkdownContainer] .css-1offfwpp{{
+          color:#053E57
+        }}
+
+        .css-1oe5cao{{
+            padding-top: 2rem;
+        }}
+        
         .stCheckbox{{
-            opacity: 0;
+            opacity:0;
         }}
 
     </style>""",
-    unsafe_allow_html=True,
-)
+            unsafe_allow_html=True,
+            )
+
+
+
+
 
 # Get the base path of the Streamlit app
 base_path = os.path.abspath(__file__)
@@ -168,6 +229,9 @@ else:
     # Filter on display columns
     gdf_filtered = gdf_filtered[display_columns]
     
+    st.sidebar.image(parent_path +"/logo/logo.png",
+                     width=150)
+
     ### Prediction from model 
     # Title and Side Bar for filters
     st.title("Real Time Monitoring")

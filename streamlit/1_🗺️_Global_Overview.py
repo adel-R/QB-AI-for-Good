@@ -171,7 +171,7 @@ with st.sidebar:
         file_name='monitoring_export.csv',
         mime='text/csv',
     )
-    st.sidebar.image("/Users/clarabesnard/Desktop/Desktop - MacBook Air de Clara (2)/DSBA 2/QB/QB-AI-for-Good/streamlit/pages/upload/logo.png",
+    st.sidebar.image(base_path+"/logo/logo.png",
                      width=150)
 
 
