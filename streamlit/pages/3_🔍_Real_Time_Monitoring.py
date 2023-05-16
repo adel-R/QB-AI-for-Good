@@ -235,10 +235,13 @@ else:
                     results.append(df.copy())
             
             # Concatenate valid metadata files
-            concatenated_df = pd.concat(results, ignore_index=True)
-
-            return concatenated_df
-    
+            if len(results)>1:
+                results_df = pd.concat(results, ignore_index=True)
+                return results_df
+            elif len(results)==1:
+                return results[0]
+            else:
+                return False  
         else:
             return False
 
@@ -269,7 +272,7 @@ else:
             # gradcam_image = Image.open(gradcam_filename)
             # gradcam_image = gradcam_image.convert("RGB")
             # st.image(gradcam_image,width=300)
-            GradCam.visualize_heatmap(img_raw, heat_map, lbl_h)
+            st.pyplot(GradCam.visualize_heatmap(img_raw, heat_map, lbl_h), width= 200)
             st.caption('Heatmap of image '+str(metadata_img['image_name'][0].values))
 
         
@@ -294,7 +297,7 @@ else:
             # gradcam_image = Image.open(gradcam_filename)
             # gradcam_image = gradcam_image.convert("RGB")
             # st.image(gradcam_image,width=300)
-            GradCam.visualize_heatmap(img_raw, heat_map, lbl_h)
+            st.pyplot(GradCam.visualize_heatmap(img_raw, heat_map, lbl_h), width= 200)
             st.caption('Heatmap of image '+ str(os.path.basename(path_to_img)))
 
         st.divider()
@@ -360,6 +363,7 @@ else:
                 # GradCam
                 heat_map, img_raw, lbl_h = GradCam.get_heatmap(model=model, path_to_img=path_to_img, device=device, against_label=None)
 
+                print(prob, lbl, os.path.basename(path_to_img) )
                 # metadata valid format
                 if metadata_df != False:
                     # Fetch metadata
@@ -371,12 +375,12 @@ else:
                         if i<5:
                             display_metadata(metadata_img,prob,lbl,lbl_h,img_raw, heat_map)
                     else:
-                        pred_df = pd.DataFrame([os.path.basename(path_to_img),lbl,prob], columns=['image_name','plume predicted','probability'])
+                        pred_df = pd.DataFrame([[os.path.basename(path_to_img),lbl,prob]], columns=['image_name','plume predicted','probability'])
                         result_pred_csv.append(pred_df.copy())
                         if i<5:
                             display_no_metadata(path_to_img,prob,lbl,img_raw, heat_map, lbl_h)
                 else:
-                    pred_df = pd.DataFrame([os.path.basename(path_to_img),lbl,prob], columns=['image_name','plume predicted','probability'])
+                    pred_df = pd.DataFrame([[os.path.basename(path_to_img),lbl,prob]], columns=['image_name','plume predicted','probability'])
                     result_pred_csv.append(pred_df.copy())
                     if i <5:
                         display_no_metadata(path_to_img,prob,lbl,img_raw, heat_map, lbl_h)
@@ -408,12 +412,14 @@ else:
                 remove_folder(output_folder)
                 val_button=None
                 verif_button=None
+                zip_file=None
             
             # Check if the button is clicked
             if verif_button:
                 remove_folder(output_folder)
                 val_button=None
                 verif_button=None
+                zip_file=None
 
         else:
             st.warning('Invalid image file format. The file must be images with .tif or .tiff extensions')

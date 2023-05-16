@@ -26,11 +26,11 @@ def get_transform(visualize = False):
             # sharpen image
             A.UnsharpMask(p = 0.5),
             # contrast, brightness
-            A.RandomBrightnessContrast(p = 0.3),
+            A.RandomBrightnessContrast(p = 0.5),
             # geometric transformations
             A.OneOf(
                 [A.Affine(scale = (0.9, 1.1), translate_percent = (0.9, 1.1), interpolation = cv2.INTER_CUBIC),
-                A.ElasticTransform(interpolation = cv2.INTER_CUBIC, p = 0.5)], p = 0.3
+                A.ElasticTransform(interpolation = cv2.INTER_CUBIC, p = 0.5)], p = 0.5
             ),
             # normalize & convert data to tensor
             A.Normalize(mean = MEAN, std = STD),

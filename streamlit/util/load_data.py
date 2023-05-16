@@ -49,7 +49,7 @@ def trainval_split(metadata, val_size = 0.2):
     return trn_metadata.reset_index(), val_metadata.reset_index()
 
 
-def stratified_split(df, k, test_size=None):
+def stratified_split(df, k, test_size = None):
     """
     Splits a dataframe into train, validation and optional test sets in a stratified manner.
 
@@ -76,7 +76,11 @@ def stratified_split(df, k, test_size=None):
 
         for id_coord in unique_id_coords:
             id_coord_df = df[df['id_coord'] == id_coord]
-            if test_count + len(id_coord_df) <= test_size_total:
+            
+            if len(id_coord_df) > 3: # do not put into test set if this location has more than 3 images (otherwise we might get very imbalanced test set)
+                continue
+
+            if (test_count + len(id_coord_df) <= test_size_total):
                 test_id_coords.append(id_coord)
                 test_count += len(id_coord_df)
             else:
