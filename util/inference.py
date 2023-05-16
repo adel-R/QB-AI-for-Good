@@ -4,6 +4,7 @@ import torchvision
 import numpy as np
 from PIL import Image
 import cv2
+import os
 # import own scripts
 import util.preprocess_data as prepData
 
@@ -19,7 +20,23 @@ def load_resnet34(path="models/best_ResNet34.pt"):
     model.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 
     # load weights
-    model.load_state_dict(torch.load(path))
+    if torch.cuda.is_available():
+        model.load_state_dict(torch.load(path))
+    else:
+        model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+    return model
+
+
+def load_mobilenet_v3_large(path):
+    # Creating model
+    model = torchvision.models.mobilenet_v3_large(progress=False, num_classes=1)
+    model.features[0][0] = nn.Conv2d(1, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1),
+                                     bias=False)  # change 1st conv layer from 3 channel to 1 channel
+    if torch.cuda.is_available():
+        model.load_state_dict(torch.load(path))
+    else:
+        model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+
     return model
 
 
@@ -66,3 +83,39 @@ def infer(model, path_to_img, device, multiple=False):
         output = 0
 
     return prob.item(), output
+
+
+def infer_mobilenet(path_to_models, path_to_img, device):
+    # Get the list of files in the directory
+    file_list = os.listdir(path_to_models)
+
+    # Transforming image to tensor
+    img_tensor, img_raw = prep_single_image(path_to_img)
+    img_tensor = img_tensor.unsqueeze(0).to(device)
+
+    probs = []
+
+    # Infer
+    for model_path in file_list:
+        model = load_mobilenet_v3_large(path_to_models + model_path)
+
+        # Model to correct device
+        model.to(device)
+
+        # Predict
+        model.eval()
+        logit = model(img_tensor)
+        prob = torch.sigmoid(logit)
+        probs.append(prob.item())
+
+    # Final prediction
+    prob = np.mean(probs)
+    best_model = np.argmax(probs)
+
+    # Converting probabilities into predictions
+    if prob > .5:
+        output = 1
+    else:
+        output = 0
+
+    return prob, output, best_model
