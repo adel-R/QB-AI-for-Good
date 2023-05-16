@@ -121,7 +121,7 @@ gdf['datetime'] =  pd.to_datetime(gdf['date'], format= "%Y%m%d")
 
 
 # Title and Side Bar for filters
-st.title("Methane Emission Dashboard")
+st.title("Earthjustice - CH4 Emissions Dashboard")
 with st.sidebar:
     st.header('Enter your filters:')
     plumes = st.selectbox('Display', ('All','Only Plumes'))
@@ -213,7 +213,7 @@ else:
 
     st.sidebar.image(parent_path +"/logo/logo.png",
                      width=150)
-    
+
     print(parent_path +"/logo/logo.png")
 
 
