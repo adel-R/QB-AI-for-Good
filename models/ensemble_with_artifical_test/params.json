@@ -1,0 +1,21 @@
+{
+  "apply_CLAHE": false,
+  "artificial_test_size": 0.15,
+  "batch_size": 16,
+  "classifier": "shallow",
+  "criterion": "BCE",
+  "dir": "L:/Projekty - DSBA/QB hackathon/QB-AI-for-Good",
+  "k_cv": 5,
+  "lr": 0.002,
+  "lr_s": "Cosine",
+  "max_epochs": 50,
+  "model": "mobilenet_v3_large",
+  "mom": 0.9,
+  "official_test": false,
+  "optim_name": "AdamW",
+  "prediction_strategy": "avg",
+  "resize": true,
+  "save": true,
+  "verbose": false,
+  "wd": 0.01
+}
