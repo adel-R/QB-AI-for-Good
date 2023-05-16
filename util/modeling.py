@@ -371,8 +371,13 @@ Val Loss: {round(val_loss, 2)}, Trn AUC: {round(trn_auc, 3)}, Val AUC: {round(va
         test_auc = roc_auc_score(lbls, preds)
 
         print(f"Test Performance -> Loss: {round(np.mean(tst_loss), 2)}, AUC: {round(test_auc, 3)}") if verbose else None
+        
     else:
         test_auc = 0
+
+    if verbose:
+        print(f"Overall Performance -> Train Loss: {get_metric_from_matrix(trn_losses, best_models_indicies)}, Train AUC: {get_metric_from_matrix(trn_aucs, best_models_indicies)}")
+        print(f"                    -> Val Loss: {get_metric_from_matrix(val_losses, best_models_indicies)}, Val AUC: {get_metric_from_matrix(val_aucs, best_models_indicies)}")
 
     if ray:
         session.report({"trn_loss": get_metric_from_matrix(trn_losses, best_models_indicies), "val_loss": get_metric_from_matrix(val_losses, best_models_indicies),
