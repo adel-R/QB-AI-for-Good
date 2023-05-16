@@ -97,7 +97,10 @@ def infer_mobilenet(path_to_models, path_to_img, device):
 
     # Infer
     for model_path in file_list:
-        model = load_mobilenet_v3_large(path_to_models + model_path)
+        if model_path.split(".")[-1] == "pt":
+            model = load_mobilenet_v3_large(path_to_models + model_path)
+        else:
+            continue
 
         # Model to correct device
         model.to(device)
