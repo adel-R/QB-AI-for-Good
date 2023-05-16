@@ -23,7 +23,7 @@ st.markdown(f"""
             padding-bottom : 0rem;
             padding-left: {padding}rem;
             padding-right: {padding}rem;
-            margin: {margin}rem;
+            margin-top: {margin}rem;
         }}
 
         .css-1oe5cao{{
