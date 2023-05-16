@@ -98,6 +98,11 @@ st.markdown(f"""
                     color:#053E57;
                 }}
 
+        [data-testid=stSidebar] button [data-testid=stMarkdownContainer] {{
+            color:#053E57;
+        }}
+        
+
         .css-1oe5cao{{
             padding-top: 2rem;
         }}
@@ -134,6 +139,7 @@ with st.sidebar:
     plumes = st.selectbox('Display', ('All','Only Plumes'))
     period = st.date_input( "Period of Interest", (datetime.date(2023, 1, 1),datetime.date(2023, 12, 31) ))
     status = st.multiselect('Status', ['Ongoing','Closed','To Be Verified'])
+    sites = st.multiselect('Sites', sorted(list(gdf['Site'].unique())))
     sectors = st.multiselect('Sectors', sorted(list(gdf['sector'].unique())))
     companies = st.multiselect('Companies', sorted(list(gdf['company'].unique())))
     countries = st.multiselect('Countries', sorted(list(gdf['country'].unique())))
@@ -161,6 +167,10 @@ if plumes=='Only Plumes':
     if countries !=[]:
         gdf_filtered = gdf_filtered[gdf_filtered['country'].isin(countries)]
 
+    # Filter on the sites
+    if sites !=[]:
+        gdf_filtered = gdf_filtered[gdf_filtered['Site'].isin(sites)]
+
     # Filter on date
     if len(period)<2:
         gdf_filtered = gdf_filtered[(gdf_filtered["datetime"] == pd.Timestamp(period[0]))]
@@ -184,6 +194,10 @@ else:
     # Filter on the countries
     if countries !=[]:
         gdf_filtered = gdf_filtered[gdf_filtered['country'].isin(countries)]
+
+    # Filter on the sites
+    if sites !=[]:
+        gdf_filtered = gdf_filtered[gdf_filtered['Site'].isin(sites)]
 
     # Filter on date
     if len(period)<2:
@@ -240,7 +254,7 @@ else:
 
     ### Prediction from model 
     # Title and Side Bar for filters
-    st.title("Real Time Monitoring")
+    st.title("Sites Monitoring")
 
     # Boolean to resize the dataframe, stored as a session state variable
     st.checkbox("Use container width", value=False, key="use_container_width")
@@ -272,7 +286,7 @@ else:
 
 
     # Title and Side Bar for filters
-    st.header("Inspect entries")
+    st.header("Inspect Satellite Images")
     # Add New entry for prediction
     zip_file = st.file_uploader('Upload satelite images and their metadata to identify potential plumes:', 
                                 type=None, accept_multiple_files=False, 
@@ -297,7 +311,6 @@ else:
     def metadata(folder_path, required_columns=['date','id_coord','lat','lon','coord_x','coord_y','image_name']):    
         # Get a list of all CSV files in the folder
         csv_files = glob.glob(os.path.join(folder_path, "*.csv"))
-
         results = []
         # Check if at least one CSV file exists in the folder
         if csv_files:
@@ -326,26 +339,26 @@ else:
     #Cache data
     @st.cache_data
     def display_metadata(metadata_img,prob,lbl,lbl_h,img_raw, heat_map):
-        col3,col4 = st.columns(2)
+        zz,col4,col5,zw = st.columns([1,4,3,1])
         
-        with col3:
-            st.subheader('Predictions results for site ID: '+ str(metadata_img['id_coord'][0].values))
-            date_obj = datetime.strptime(metadata_img['date'][0].values, '%Y%m%d')
+        with col4:
+            st.write('Predictions results for site ID: '+ str(metadata_img['id_coord'][0]))
+            date_obj = datetime.datetime.strptime(str(metadata_img['date'][0]), '%Y%m%d')
             formatted_date = date_obj.strftime('%d/%m/%Y')
             st.write('Date taken: '+ formatted_date)
-            # st.write('Latitude: '+str(metadata_img['lat'][0].values))
-            # st.write('Longitude: '+str(metadata_img['lon'][0].values))
-            st.write('City: '+str(metadata_img['city'][0].values))
-            st.write('Country: '+str(metadata_img['country'][0].values))
-            st.write('File name: '+str(metadata_img['image_name'][0].values))
-            st.write('Confidence probability (%): '+str(round(prob*100,2))+' %')
+            st.write('Latitude: '+str(metadata_img['lat'][0]))
+            st.write('Longitude: '+str(metadata_img['lon'][0]))
+            # st.write('City: '+str(metadata_img['city'][0]))
+            # st.write('Country: '+str(metadata_img['country'][0]))
+            st.write('File name: '+str(metadata_img['image_name'][0]))
+            st.write('Confidence: '+str(round(prob*100,2))+' %')
             if lbl>0:
                 st.subheader(':warning: :red[A plume has been identified]')
             else:
                 st.subheader(':heavy_check_mark: :green[No plume has been identified]')
 
 
-        with col4:
+        with col5:
             # gradcam_filename = parent_path+'/map/images/no_plume/20230305_methane_mixing_ratio_id_2384.tif'
             # gradcam_image = Image.open(gradcam_filename)
             # gradcam_image = gradcam_image.convert("RGB")
@@ -369,8 +382,8 @@ else:
         zz,col4,col5,zw = st.columns([1,4,3,1])
         
         with col4:
-            st.subheader('Predictions results for image: '+ str(os.path.basename(path_to_img)))
-            st.write('Confidence probability (%): '+str(round(prob*100,2))+' %')
+            st.write('Predictions results for image: '+ str(os.path.basename(path_to_img)))
+            st.write('Confidence: '+str(round(prob*100,2))+' %')
             if lbl>0:
                 st.subheader(':warning: :red[A plume has been identified]')
             else:
@@ -424,24 +437,24 @@ else:
 
             metadata_df = metadata(output_folder)
 
-            # Fetch country and city
-            if metadata_df != False:
-                # Use reverse_geocoder to get the city and country information
-                coords = list(zip(metadata_df["lat"], metadata_df["lon"]))
-                coord_results = rg.search(coords)
+            # # Fetch country and city
+            # if isinstance(metadata_df, bool)==False:
+            #     # Use reverse_geocoder to get the city and country information
+            #     coords = list(zip(metadata_df["lat"], metadata_df["lon"]))
+            #     coord_results = rg.search(coords)
 
-                # Extract city and country and add to the dataframe
-                metadata_df["city"] = [r["name"] for r in coord_results]
-                metadata_df["country_code"] = [r["cc"] for r in coord_results]
+            #     # Extract city and country and add to the dataframe
+            #     metadata_df["city"] = [r["name"] for r in coord_results]
+            #     metadata_df["country_code"] = [r["cc"] for r in coord_results]
 
-                # Convert country codes to country names
-                def get_country_name(country_code):
-                    try:
-                        return pycountry.countries.get(alpha_2=country_code).name
-                    except AttributeError:
-                        return None
+            #     # Convert country codes to country names
+            #     def get_country_name(country_code):
+            #         try:
+            #             return pycountry.countries.get(alpha_2=country_code).name
+            #         except AttributeError:
+            #             return None
                     
-                metadata_df["country"] = metadata_df["country_code"].apply(get_country_name)
+            #     metadata_df["country"] = metadata_df["country_code"].apply(get_country_name)
 
             result_pred_csv = []
             for i in range(len(image_list_paths)):
@@ -456,9 +469,10 @@ else:
                 heat_map, img_raw, lbl_h = GradCam.get_heatmap(model=model, path_to_img=path_to_img, device=device, against_label=None)
 
                 # metadata valid format
-                if metadata_df != False:
+                if isinstance(metadata_df, bool)==False:
                     # Fetch metadata
-                    metadata_img = metadata_df[metadata_df['image_name']==os.path.basename(path_to_img)].fillna('-').copy()
+                    metadata_img = metadata_df[metadata_df['image_name']==os.path.basename(path_to_img)[:os.path.basename(path_to_img).find('.')]].fillna('-').copy()
+                    metadata_img.reset_index(drop=True, inplace=True)
                     if metadata_img.shape[0]>0:
                         metadata_img['plume predicted'] = lbl
                         metadata_img['probability'] = prob
