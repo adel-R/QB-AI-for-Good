@@ -215,7 +215,7 @@ else:
     gdf_filtered = gdf_filtered[gdf_filtered['company'] == 'CrystalPeak Oil & Gas']
 
     ## Display summary data
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     # total sites
     total_site = gdf_filtered['Site'].nunique()
     col1.metric("Total Sites", total_site)
@@ -241,6 +241,9 @@ else:
                 str(round(total_emission,1)) + ' kt CH4', str(round(total_emission/sum_emission*100,1))+'% of Sector', delta_color='off')
     avg_days = gdf_filtered['Estimated Duration (hours)'].mean()
     col4.metric("Average leak duration", str(round(avg_days,1)) + 'h')
+    total_credit = gdf_filtered['Carbon Credit cost ($)'].sum()
+    col5.metric("Total Carbon Credit Cost", str(round(
+        total_credit/1000000, 1)) + 'M$', 'carbon price - 100$/CO2t', delta_color='off')
     ### Trend
 
 
