@@ -272,7 +272,14 @@ else:
             # gradcam_image = Image.open(gradcam_filename)
             # gradcam_image = gradcam_image.convert("RGB")
             # st.image(gradcam_image,width=300)
-            st.pyplot(GradCam.visualize_heatmap(img_raw, heat_map, lbl_h), width= 200)
+            fig = GradCam.visualize_heatmap(img_raw, heat_map, lbl_h)
+            img_width=200
+            # Create the HTML code to set the width
+            html_code = f'<div style="width: {img_width}px">{fig.get_tightbbox(fig.canvas.get_renderer()).to_html()}</div>'
+
+            # Render the HTML code using st.markdown()
+            st.markdown(html_code, unsafe_allow_html=True)
+
             st.caption('Heatmap of image '+str(metadata_img['image_name'][0].values))
 
         
@@ -297,7 +304,14 @@ else:
             # gradcam_image = Image.open(gradcam_filename)
             # gradcam_image = gradcam_image.convert("RGB")
             # st.image(gradcam_image,width=300)
-            st.pyplot(GradCam.visualize_heatmap(img_raw, heat_map, lbl_h), width= 200)
+            fig = GradCam.visualize_heatmap(img_raw, heat_map, lbl_h)
+            img_width=200
+            # Create the HTML code to set the width
+            html_code = f'<div style="width: {img_width}px">{fig.get_tightbbox(fig.canvas.get_renderer()).to_html()}</div>'
+
+            # Render the HTML code using st.markdown()
+            st.markdown(html_code, unsafe_allow_html=True)
+
             st.caption('Heatmap of image '+ str(os.path.basename(path_to_img)))
 
         st.divider()
