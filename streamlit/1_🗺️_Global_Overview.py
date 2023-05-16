@@ -171,7 +171,7 @@ with st.sidebar:
         file_name='monitoring_export.csv',
         mime='text/csv',
     )
-    st.sidebar.image(base_path+"/logo/logo.png",
+    st.sidebar.image(os.path.dirname(base_path)+"/logo/logo.png",
                      width=150)
 
 
