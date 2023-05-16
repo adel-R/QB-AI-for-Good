@@ -94,6 +94,10 @@ st.markdown(f"""
           color:#053E57
         }}
 
+        [data-testid=stMarkdownContainer] h2 span{{
+                    color:#053E57;
+                }}
+
         .css-1oe5cao{{
             padding-top: 2rem;
         }}
@@ -451,7 +455,6 @@ else:
                 # GradCam
                 heat_map, img_raw, lbl_h = GradCam.get_heatmap(model=model, path_to_img=path_to_img, device=device, against_label=None)
 
-                print(prob, lbl, os.path.basename(path_to_img) )
                 # metadata valid format
                 if metadata_df != False:
                     # Fetch metadata
